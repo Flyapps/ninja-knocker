@@ -815,7 +815,7 @@ co.doubleduck.Assets.loadAll = function() {
 	co.doubleduck.Assets.loader().load();
 }
 co.doubleduck.Assets.audioLoaded = function(event) {
-	co.doubleduck.Assets._cacheData[event.src] = event;
+	co.doubleduck.Assets._cacheData[event.target.src] = event.target;
 }
 co.doubleduck.Assets.handleProgress = function(event) {
 	co.doubleduck.Assets.loaded = event.loaded;
@@ -1335,7 +1335,6 @@ co.doubleduck.Game.prototype = {
 	,showMenu: function() {
 		this._splashScreen.onClick = null;
 		co.doubleduck.Game._stage.removeChild(this._tapToPlay);
-		co.doubleduck.Game._stage.removeChild(this._evme);
 		this._tapToPlay = null;
 		createjs.Tween.get(this._splashScreen).to({ y : this._splashScreen.y + co.doubleduck.Game.getViewport().height},1000).call($bind(this,this.removeSplash));
 		this._menu = new co.doubleduck.Menu();
@@ -1374,7 +1373,6 @@ co.doubleduck.Game.prototype = {
 		this._evme.regY = this._evme.image.height * 0.90;
 		this._evme.x = co.doubleduck.Game.getViewport().width;
 		this._evme.y = co.doubleduck.Game.getViewport().height;
-		co.doubleduck.Game._stage.addChild(this._evme);
 	}
 	,handleDoneLoading: function() {
 		createjs.Tween.get(this._splash).wait(200).to({ alpha : 0},800).call($bind(this,this.splashEnded));
@@ -2914,7 +2912,12 @@ co.doubleduck.SoundManager.setPersistedMute = function(mute) {
 }
 co.doubleduck.SoundManager.isSoundAvailable = function() {
 	var isFirefox = /Firefox/.test(navigator.userAgent);
-	return isFirefox;
+	var isChrome = /Chrome/.test(navigator.userAgent);
+	var isMobile = /Android/.test(navigator.userAgent);
+	var isAndroid = /Mobile/.test(navigator.userAgent);
+	if(isFirefox) return true;
+	if(isChrome && (!isAndroid && !isMobile)) return true;
+	return false;
 }
 co.doubleduck.SoundManager.mute = function() {
 	if(!co.doubleduck.SoundManager.available) return;
@@ -2952,18 +2955,21 @@ co.doubleduck.SoundManager.getAudioInstance = function(src) {
 	}
 	return audio;
 }
-co.doubleduck.SoundManager.playEffect = function(src) {
+co.doubleduck.SoundManager.playEffect = function(src,volume) {
+	if(volume == null) volume = 1;
 	var audio = co.doubleduck.SoundManager.getAudioInstance(src);
-	var volume = 1;
-	if(co.doubleduck.SoundManager._muted) volume = 0;
-	audio.playEffect(volume);
+	var playVolume = volume;
+	if(co.doubleduck.SoundManager._muted) playVolume = 0;
+	audio.playEffect(playVolume);
 	return audio;
 }
-co.doubleduck.SoundManager.playMusic = function(src) {
+co.doubleduck.SoundManager.playMusic = function(src,volume,loop) {
+	if(loop == null) loop = true;
+	if(volume == null) volume = 1;
 	var audio = co.doubleduck.SoundManager.getAudioInstance(src);
-	var volume = 1;
-	if(co.doubleduck.SoundManager._muted) volume = 0;
-	audio.playMusic(volume,true);
+	var playVolume = volume;
+	if(co.doubleduck.SoundManager._muted) playVolume = 0;
+	audio.playMusic(playVolume,loop);
 	return audio;
 }
 co.doubleduck.SoundManager.prototype = {
