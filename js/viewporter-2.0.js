@@ -46,6 +46,9 @@ var viewporter;
 
         // methods
         isLandscape: function() {
+            if (/Firefox/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent)) {
+                return (window.screen.width > window.screen.height);
+            }
             return window.orientation === 90 || window.orientation === -90;
         },
 
@@ -193,6 +196,7 @@ var viewporter;
                     // Special case for mobile firefox browser
                     if (/Firefox/.test(navigator.userAgent)) {
                         document.getElementById('viewporter').style.width = window.innerWidth + 'px';
+                        document.getElementById('viewporter').style.height = (window.screen.height - 110) + 'px';
 
                     } else {
                         // set minimum height of content to new window height

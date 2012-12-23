@@ -687,87 +687,13 @@ Type.allEnums = function(e) {
 }
 var co = co || {}
 if(!co.doubleduck) co.doubleduck = {}
-co.doubleduck.Persistence = $hxClasses["co.doubleduck.Persistence"] = function() {
-};
-co.doubleduck.Persistence.__name__ = ["co","doubleduck","Persistence"];
-co.doubleduck.Persistence.localStorageSupported = function() {
-	var result = null;
-	try {
-		localStorage.setItem("test","test");
-		localStorage.removeItem("test");
-		result = true;
-	} catch( e ) {
-		result = false;
-	}
-	return result;
-}
-co.doubleduck.Persistence.getValue = function(key) {
-	if(!co.doubleduck.Persistence.available) return "0";
-	var val = localStorage[co.doubleduck.Persistence.GAME_PREFIX + key];
-	return val;
-}
-co.doubleduck.Persistence.setValue = function(key,value) {
-	if(!co.doubleduck.Persistence.available) return;
-	localStorage[co.doubleduck.Persistence.GAME_PREFIX + key] = value;
-}
-co.doubleduck.Persistence.clearAll = function() {
-	localStorage.clear();
-}
-co.doubleduck.Persistence.getTotalKnocks = function() {
-	return Std.parseInt(co.doubleduck.Persistence.getValue("totalKnocks"));
-}
-co.doubleduck.Persistence.setTotalKnocks = function(totalKnocks) {
-	co.doubleduck.Persistence.setValue("totalKnocks","" + totalKnocks);
-}
-co.doubleduck.Persistence.getVillageHighscore = function(villageId) {
-	return Std.parseInt(co.doubleduck.Persistence.getValue("vill" + villageId + "_highscore"));
-}
-co.doubleduck.Persistence.setVillageHighscore = function(villageId,highscore) {
-	co.doubleduck.Persistence.setValue("vill" + villageId + "_highscore","" + highscore);
-}
-co.doubleduck.Persistence.initGameData = function() {
-	if(!co.doubleduck.Persistence.available) return;
-	co.doubleduck.Persistence.initVar("totalKnocks");
-	var villageDB = new VillageDB();
-	var allVillages = villageDB.getAllVillages();
-	var _g1 = 0, _g = allVillages.length;
-	while(_g1 < _g) {
-		var currLevel = _g1++;
-		var villageId = allVillages[currLevel].id;
-		co.doubleduck.Persistence.initVar("vill" + villageId + "_highscore");
-	}
-}
-co.doubleduck.Persistence.printGameData = function() {
-	if(!co.doubleduck.Persistence.available) return;
-	console.log("totalKnocks = " + co.doubleduck.Persistence.getValue("totalKnocks"));
-	var villageDB = new VillageDB();
-	var allVillages = villageDB.getAllVillages();
-	var _g1 = 0, _g = allVillages.length;
-	while(_g1 < _g) {
-		var currLevel = _g1++;
-		var villageId = allVillages[currLevel].id;
-		console.log("vill" + villageId + "_highscore = " + co.doubleduck.Persistence.getValue("vill" + villageId + "_highscore"));
-	}
-}
-co.doubleduck.Persistence.initVar = function(initedVar) {
-	var value = co.doubleduck.Persistence.getValue(initedVar);
-	if(value == null) try {
-		co.doubleduck.Persistence.setValue(initedVar,"0");
-	} catch( e ) {
-		co.doubleduck.Persistence.available = false;
-		console.log("<<< failed to load critical data from localStorage");
-	}
-}
-co.doubleduck.Persistence.prototype = {
-	__class__: co.doubleduck.Persistence
-}
 co.doubleduck.Assets = $hxClasses["co.doubleduck.Assets"] = function() {
 };
 co.doubleduck.Assets.__name__ = ["co","doubleduck","Assets"];
 co.doubleduck.Assets.loader = function() {
 	if(co.doubleduck.Assets._loader == null) {
 		co.doubleduck.Assets._loader = new createjs.PreloadJS();
-		co.doubleduck.Assets._loader.initialize(false);
+		co.doubleduck.Assets._loader.initialize(true);
 		co.doubleduck.Assets._loader.onFileLoad = co.doubleduck.Assets.handleFileLoaded;
 		co.doubleduck.Assets._loader.onFileError = co.doubleduck.Assets.handleLoadError;
 		co.doubleduck.Assets._loader.setMaxConnections(10);
@@ -788,6 +714,38 @@ co.doubleduck.Assets.loadAll = function() {
 		++_g;
 		manifest[manifest.length] = enemy.bitmapLoc;
 		manifest[manifest.length] = enemy.icon;
+	}
+	var sounds = new Array();
+	sounds[sounds.length] = "sounds/Hit_1.ogg";
+	sounds[sounds.length] = "sounds/Hit_2.ogg";
+	sounds[sounds.length] = "sounds/Hit_3.ogg";
+	sounds[sounds.length] = "sounds/Hit_4.ogg";
+	sounds[sounds.length] = "sounds/Hit_1short.ogg";
+	sounds[sounds.length] = "sounds/Hit_2short.ogg";
+	sounds[sounds.length] = "sounds/Hit_3short.ogg";
+	sounds[sounds.length] = "sounds/Hit_4short.ogg";
+	sounds[sounds.length] = "sounds/level_end2.ogg";
+	sounds[sounds.length] = "sounds/score.ogg";
+	sounds[sounds.length] = "sounds/three.ogg";
+	sounds[sounds.length] = "sounds/two.ogg";
+	sounds[sounds.length] = "sounds/one.ogg";
+	sounds[sounds.length] = "sounds/mega_shield.ogg";
+	sounds[sounds.length] = "sounds/music.ogg";
+	sounds[sounds.length] = "sounds/Hero_Hurt.ogg";
+	sounds[sounds.length] = "sounds/stamp2.ogg";
+	sounds[sounds.length] = "sounds/stamp3.ogg";
+	sounds[sounds.length] = "sounds/fury_blast.ogg";
+	sounds[sounds.length] = "sounds/in_the_zen.ogg";
+	sounds[sounds.length] = "sounds/swipe.ogg";
+	sounds[sounds.length] = "sounds/click.ogg";
+	if(co.doubleduck.SoundManager.available) {
+		var _g1 = 0, _g = sounds.length;
+		while(_g1 < _g) {
+			var mySound = _g1++;
+			var audio = new Audio();
+			audio.src = sounds[mySound];
+			audio.addEventListener("canplaythrough",co.doubleduck.Assets.audioLoaded,false);
+		}
 	}
 	manifest[manifest.length] = "images/villages/village1/bgstatic.png";
 	manifest[manifest.length] = "images/villages/village1/midracha.png";
@@ -813,6 +771,8 @@ co.doubleduck.Assets.loadAll = function() {
 	manifest[manifest.length] = "images/menu/highscore.png";
 	manifest[manifest.length] = "images/menu/knocks.png";
 	manifest[manifest.length] = "images/menu/tap2play.png";
+	manifest[manifest.length] = "images/menu/audio_btn.png";
+	manifest[manifest.length] = "images/menu/published_by_everything_me.png";
 	manifest[manifest.length] = "images/hud/powerup_fill.png";
 	manifest[manifest.length] = "images/hud/powerup_stroke.png";
 	manifest[manifest.length] = "images/hud/gamepause.png";
@@ -847,44 +807,15 @@ co.doubleduck.Assets.loadAll = function() {
 	manifest[manifest.length] = "images/powerups/Label_shield.png";
 	manifest[manifest.length] = "images/powerups/Label_focus.png";
 	manifest[manifest.length] = "images/powerups/Label_megaknock.png";
-	if(co.doubleduck.Assets._useLocalStorage) co.doubleduck.Assets.loadFromLocalStorage(manifest);
 	if(manifest.length == 0) {
 		if(co.doubleduck.Assets.onLoadAll != null) co.doubleduck.Assets.onLoadAll();
 	}
 	co.doubleduck.Assets.loader().onProgress = co.doubleduck.Assets.handleProgress;
-	co.doubleduck.Assets.loader().onFileLoad = co.doubleduck.Assets.manifestFileLoad;
 	co.doubleduck.Assets.loader().loadManifest(manifest);
 	co.doubleduck.Assets.loader().load();
 }
-co.doubleduck.Assets.manifestFileLoad = function(event) {
-	if(co.doubleduck.Assets._useLocalStorage && event != null) {
-		var utils = new ddjsutils();
-		try {
-			var fileName = event.src;
-			if(HxOverrides.substr(fileName,fileName.length - 3,null) == "jpg") return;
-			co.doubleduck.Persistence.setValue(event.src,utils.getBase64Image(event.result));
-		} catch( err ) {
-		}
-	}
-}
-co.doubleduck.Assets.loadFromLocalStorage = function(manifest) {
-	var entriesToRemove = new Array();
-	var _g1 = 0, _g = manifest.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var entry = manifest[i];
-		var value = co.doubleduck.Persistence.getValue(entry);
-		if(value != null) {
-			var bmp = new createjs.Bitmap("data:image/png;base64," + value);
-			co.doubleduck.Assets._cacheData[entry] = bmp.image;
-			entriesToRemove.push(manifest[i]);
-		}
-	}
-	var _g1 = 0, _g = entriesToRemove.length;
-	while(_g1 < _g) {
-		var j = _g1++;
-		HxOverrides.remove(manifest,entriesToRemove[j]);
-	}
+co.doubleduck.Assets.audioLoaded = function(event) {
+	co.doubleduck.Assets._cacheData[event.src] = event;
 }
 co.doubleduck.Assets.handleProgress = function(event) {
 	co.doubleduck.Assets.loaded = event.loaded;
@@ -918,7 +849,7 @@ co.doubleduck.Assets.getRawImage = function(uri) {
 		var bmp = new createjs.Bitmap(uri);
 		co.doubleduck.Assets._cacheData[uri] = bmp.image;
 		cache = bmp.image;
-		console.log("Requsted image that wasn't preloaded, consider preloading - \"" + uri + "\"");
+		null;
 	}
 	return cache;
 }
@@ -931,15 +862,34 @@ co.doubleduck.Assets.getImage = function(uri,mouseEnabled) {
 co.doubleduck.Assets.prototype = {
 	__class__: co.doubleduck.Assets
 }
-co.doubleduck.Button = $hxClasses["co.doubleduck.Button"] = function(bmp,affectedByPause) {
-	if(affectedByPause == null) affectedByPause = true;
+co.doubleduck.Button = $hxClasses["co.doubleduck.Button"] = function(bmp,pauseAffected,clickType,clickSound) {
+	if(clickSound == null) clickSound = "sounds/click.ogg";
+	if(clickType == null) clickType = 2;
+	if(pauseAffected == null) pauseAffected = true;
 	createjs.Container.call(this);
+	this._clickSound = clickSound;
 	this._bitmap = bmp;
 	this._bitmap.mouseEnabled = true;
+	this._clickType = clickType;
+	this._pauseAffected = pauseAffected;
 	this.image = this._bitmap.image;
-	this.addChild(this._bitmap);
+	if(clickType == co.doubleduck.Button.CLICK_TYPE_TOGGLE) {
+		var initObject = { };
+		var size = this.image.width / 2;
+		initObject.images = [this.image];
+		initObject.frames = { width : size, height : this.image.height, regX : size / 2, regY : this.image.height / 2};
+		this._states = new createjs.BitmapAnimation(new createjs.SpriteSheet(initObject));
+		this._states.gotoAndStop(0);
+		this.onClick = $bind(this,this.handleToggle);
+		this.addChild(this._states);
+	} else {
+		this._bitmap.regX = this.image.width / 2;
+		this._bitmap.regY = this.image.height / 2;
+		this._bitmap.x = this.image.width / 2;
+		this._bitmap.y = this.image.height / 2;
+		this.addChild(this._bitmap);
+	}
 	this.onPress = $bind(this,this.handlePress);
-	this._pauseable = affectedByPause;
 };
 co.doubleduck.Button.__name__ = ["co","doubleduck","Button"];
 co.doubleduck.Button.__super__ = createjs.Container;
@@ -948,18 +898,86 @@ co.doubleduck.Button.prototype = $extend(createjs.Container.prototype,{
 		co.doubleduck.Utils.tintBitmap(this._bitmap,1,1,1,1);
 		if(createjs.Ticker.getPaused()) co.doubleduck.Game.getStage().update();
 	}
+	,setToggle: function(flag) {
+		if(flag) this._states.gotoAndStop(0); else this._states.gotoAndStop(1);
+	}
+	,handleToggle: function() {
+		if(this.onToggle == null) return;
+		this._states.gotoAndStop(1 - this._states.currentFrame);
+		this.onToggle();
+	}
 	,handlePress: function() {
-		if(createjs.Ticker.getPaused() && this._pauseable) return;
+		if(createjs.Ticker.getPaused() && this._pauseAffected) return;
 		if(this.onClick != null) {
-			co.doubleduck.Utils.tintBitmap(this._bitmap,0.55,0.55,0.55,1);
-			var tween = createjs.Tween.get(this._bitmap);
-			tween.ignoreGlobalPause = true;
-			tween.wait(200).call($bind(this,this.handleEndPress));
-			if(createjs.Ticker.getPaused()) co.doubleduck.Game.getStage().update();
+			if(this._clickSound != null) co.doubleduck.SoundManager.playEffect(this._clickSound);
+			switch(this._clickType) {
+			case co.doubleduck.Button.CLICK_TYPE_TINT:
+				co.doubleduck.Utils.tintBitmap(this._bitmap,0.55,0.55,0.55,1);
+				var tween = createjs.Tween.get(this._bitmap);
+				tween.ignoreGlobalPause = true;
+				tween.wait(200).call($bind(this,this.handleEndPress));
+				if(createjs.Ticker.getPaused()) co.doubleduck.Game.getStage().update();
+				break;
+			case co.doubleduck.Button.CLICK_TYPE_JUICY:
+				this._juiceTween = createjs.Tween.get(this._bitmap);
+				this._juiceTween.ignoreGlobalPause = true;
+				var startScaleX = this._bitmap.scaleX;
+				var startScaleY = this._bitmap.scaleY;
+				this._bitmap.scaleX = startScaleX * 1.25;
+				this._bitmap.scaleY = startScaleY * 0.75;
+				this._juiceTween.to({ scaleX : startScaleX, scaleY : startScaleY},500,createjs.Ease.elasticOut);
+				break;
+			case co.doubleduck.Button.CLICK_TYPE_SCALE:
+				this._juiceTween = createjs.Tween.get(this._bitmap);
+				this._juiceTween.ignoreGlobalPause = true;
+				var startScaleX = this._bitmap.scaleX;
+				var startScaleY = this._bitmap.scaleY;
+				this._bitmap.scaleX = startScaleX * 1.18;
+				this._bitmap.scaleY = startScaleY * 1.18;
+				this._juiceTween.to({ scaleX : startScaleX, scaleY : startScaleY},200,createjs.Ease.elasticOut);
+				break;
+			case co.doubleduck.Button.CLICK_TYPE_TOGGLE:
+				break;
+			case co.doubleduck.Button.CLICK_TYPE_NONE:
+				break;
+			}
 		}
 	}
-	,_pauseable: null
+	,setNoSound: function() {
+		this._clickSound = null;
+	}
+	,addLabel: function(label) {
+		var txt = co.doubleduck.FontHelper.getNumber(Std.parseInt(label));
+		var width = 0;
+		var height = 0;
+		if(label.length == 1) {
+			var digit = txt;
+			width = digit.image.width * co.doubleduck.Game.getScale();
+			height = digit.image.height * co.doubleduck.Game.getScale();
+		} else {
+			var num = txt;
+			var _g1 = 0, _g = num.children.length;
+			while(_g1 < _g) {
+				var currDigit = _g1++;
+				var digit = num.getChildAt(currDigit);
+				width += digit.image.width * co.doubleduck.Game.getScale();
+				height = digit.image.height * co.doubleduck.Game.getScale();
+			}
+		}
+		txt.regX = width / 2;
+		txt.regY = height / 2;
+		txt.scaleX = txt.scaleY = co.doubleduck.Game.getScale();
+		txt.x = this._bitmap.image.width / 2;
+		txt.y = this._bitmap.image.height * 0.45 * co.doubleduck.Game.getScale();
+		this.addChild(txt);
+	}
+	,_clickSound: null
+	,_juiceTween: null
+	,_clickType: null
+	,_pauseAffected: null
+	,_states: null
 	,_bitmap: null
+	,onToggle: null
 	,image: null
 	,__class__: co.doubleduck.Button
 });
@@ -1181,7 +1199,15 @@ co.doubleduck.Game = $hxClasses["co.doubleduck.Game"] = function(stage) {
 	this.STATE_SPLASH = 2;
 	this.STATE_SESSION = 1;
 	this.STATE_MENU = 0;
+	var isGS3Stock = /Android 4.0.4/.test(navigator.userAgent);
+	isGS3Stock = isGS3Stock && /GT-I9300/.test(navigator.userAgent);
+	isGS3Stock = isGS3Stock && !/Chrome/.test(navigator.userAgent);
+	if(isGS3Stock) {
+		js.Lib.alert("This phone's version is not supported. please update your phone's software.");
+		return;
+	}
 	co.doubleduck.Game._stage = stage;
+	co.doubleduck.Game._stage.mouseEnabled = false;
 	co.doubleduck.Game._viewport = new createjs.Rectangle(0,0,1,1);
 	co.doubleduck.Game.hammer = new Hammer(js.Lib.document.getElementById("stageCanvas"));
 	viewporter.preventPageScroll = true;
@@ -1196,6 +1222,7 @@ co.doubleduck.Game = $hxClasses["co.doubleduck.Game"] = function(stage) {
 		viewporter.change($bind(this,this.handleViewportChanged));
 		if(viewporter.isLandscape()) co.doubleduck.Assets.loadAndCall("images/orientation_error.png",$bind(this,this.waitForPortrait)); else co.doubleduck.Assets.loadAndCall("images/splash_logo.png",$bind(this,this.loadBarFill));
 	} else co.doubleduck.Assets.loadAndCall("images/splash_logo.png",$bind(this,this.loadBarFill));
+	document.addEventListener('mozvisibilitychange', this.exitFocus);
 };
 co.doubleduck.Game.__name__ = ["co","doubleduck","Game"];
 co.doubleduck.Game._stage = null;
@@ -1216,11 +1243,7 @@ co.doubleduck.Game.getStage = function() {
 }
 co.doubleduck.Game.setScale = function() {
 	var regScale = co.doubleduck.Game._viewport.height / co.doubleduck.Game.MAX_HEIGHT;
-	var isFirefox = /Firefox/.test(navigator.userAgent);
-	if(viewporter.ACTIVE && isFirefox) {
-		co.doubleduck.Game._scale = co.doubleduck.Game._viewport.width / co.doubleduck.Game.MAX_WIDTH;
-		co.doubleduck.Game._viewport.height = co.doubleduck.Game.MAX_HEIGHT * co.doubleduck.Game._scale;
-	} else if(co.doubleduck.Game._viewport.width >= co.doubleduck.Game._viewport.height) co.doubleduck.Game._scale = regScale; else if(co.doubleduck.Game.MAX_WIDTH * regScale < co.doubleduck.Game._viewport.width) co.doubleduck.Game._scale = co.doubleduck.Game._viewport.width / co.doubleduck.Game.MAX_WIDTH; else co.doubleduck.Game._scale = regScale;
+	if(co.doubleduck.Game._viewport.width >= co.doubleduck.Game._viewport.height) co.doubleduck.Game._scale = regScale; else if(co.doubleduck.Game.MAX_WIDTH * regScale < co.doubleduck.Game._viewport.width) co.doubleduck.Game._scale = co.doubleduck.Game._viewport.width / co.doubleduck.Game.MAX_WIDTH; else co.doubleduck.Game._scale = regScale;
 }
 co.doubleduck.Game.prototype = {
 	handleSessionEnd: function() {
@@ -1265,8 +1288,8 @@ co.doubleduck.Game.prototype = {
 				this._orientError = co.doubleduck.Assets.getImage("images/orientation_error.png");
 				this._orientError.regX = this._orientError.image.width / 2;
 				this._orientError.regY = this._orientError.image.height / 2;
-				this._orientError.x = js.Lib.window.innerWidth / 2;
-				this._orientError.y = js.Lib.window.innerHeight / 2;
+				this._orientError.x = co.doubleduck.Game._viewport.height / 2;
+				this._orientError.y = co.doubleduck.Game._viewport.width / 2;
 				co.doubleduck.Game._stage.addChildAt(this._orientError,co.doubleduck.Game._stage.getNumChildren());
 				this._session.pause();
 			}
@@ -1276,23 +1299,34 @@ co.doubleduck.Game.prototype = {
 			if(createjs.Ticker.getPaused()) co.doubleduck.Game._stage.update();
 			if(this._waitingToStart) {
 				this._waitingToStart = false;
-				co.doubleduck.Assets.loadAndCall("images/splash_logo.png",$bind(this,this.showSplash));
+				co.doubleduck.Assets.loadAndCall("images/splash_logo.png",$bind(this,this.loadBarFill));
 			}
 		}
 	}
-	,handleResize: function(e) {
+	,screenResize: function() {
+		var isFirefox = /Firefox/.test(navigator.userAgent);
+		var isAndroid = /Android/.test(navigator.userAgent);
 		var screenW = js.Lib.window.innerWidth;
 		var screenH = js.Lib.window.innerHeight;
 		co.doubleduck.Game._stage.canvas.width = screenW;
 		co.doubleduck.Game._stage.canvas.height = screenH;
 		if(!viewporter.isLandscape()) {
+			if(isFirefox && isAndroid) {
+				var viewportHeight = js.Lib.window.screen.height - 110;
+				screenH = Math.ceil(viewportHeight * (screenW / js.Lib.window.screen.width));
+			}
 			if(!(viewporter.ACTIVE && screenH < screenW)) {
 				co.doubleduck.Game._viewport.width = screenW;
 				co.doubleduck.Game._viewport.height = screenH;
 				co.doubleduck.Game.setScale();
 			}
-		}
+			if(this._orientError != null && isFirefox) this.handleViewportChanged();
+		} else if(isFirefox) this.handleViewportChanged();
 		if(createjs.Ticker.getPaused()) co.doubleduck.Game._stage.update();
+	}
+	,handleResize: function(e) {
+		this.screenResize();
+		co.doubleduck.Utils.waitAndCall(null,1000,$bind(this,this.screenResize));
 	}
 	,removeSplash: function() {
 		co.doubleduck.Game._stage.removeChild(this._splashScreen);
@@ -1301,6 +1335,7 @@ co.doubleduck.Game.prototype = {
 	,showMenu: function() {
 		this._splashScreen.onClick = null;
 		co.doubleduck.Game._stage.removeChild(this._tapToPlay);
+		co.doubleduck.Game._stage.removeChild(this._evme);
 		this._tapToPlay = null;
 		createjs.Tween.get(this._splashScreen).to({ y : this._splashScreen.y + co.doubleduck.Game.getViewport().height},1000).call($bind(this,this.removeSplash));
 		this._menu = new co.doubleduck.Menu();
@@ -1333,6 +1368,13 @@ co.doubleduck.Game.prototype = {
 		this.textAlpha();
 		co.doubleduck.Game._stage.addChildAt(this._tapToPlay,1);
 		this._splashScreen.onClick = $bind(this,this.showMenu);
+		this._evme = co.doubleduck.Assets.getImage("images/menu/published_by_everything_me.png");
+		this._evme.scaleX = this._evme.scaleY = co.doubleduck.Game.getScale();
+		this._evme.regX = this._evme.image.width;
+		this._evme.regY = this._evme.image.height * 0.90;
+		this._evme.x = co.doubleduck.Game.getViewport().width;
+		this._evme.y = co.doubleduck.Game.getViewport().height;
+		co.doubleduck.Game._stage.addChild(this._evme);
 	}
 	,handleDoneLoading: function() {
 		createjs.Tween.get(this._splash).wait(200).to({ alpha : 0},800).call($bind(this,this.splashEnded));
@@ -1357,7 +1399,7 @@ co.doubleduck.Game.prototype = {
 		this._splash.regX = this._splash.image.width / 2;
 		this._splash.regY = this._splash.image.height / 2;
 		this._splash.x = js.Lib.window.innerWidth / 2;
-		this._splash.y = js.Lib.window.innerHeight / 2;
+		this._splash.y = 200;
 		co.doubleduck.Game._stage.addChild(this._splash);
 		this._loadingStroke = co.doubleduck.Assets.getImage("images/loading_stroke.png");
 		this._loadingStroke.regX = this._loadingStroke.image.width / 2;
@@ -1366,7 +1408,7 @@ co.doubleduck.Game.prototype = {
 		this._loadingBar.regX = this._loadingBar.image.width / 2;
 		co.doubleduck.Game._stage.addChildAt(this._loadingBar,1);
 		this._loadingBar.x = js.Lib.window.innerWidth / 2;
-		this._loadingBar.y = js.Lib.window.innerHeight / 2 + 100;
+		this._loadingBar.y = this._splash.y + 110;
 		this._loadingStroke.x = this._loadingBar.x;
 		this._loadingStroke.y = this._loadingBar.y;
 		this._loadingBar.visible = false;
@@ -1393,6 +1435,11 @@ co.doubleduck.Game.prototype = {
 	,loadBarFill: function() {
 		co.doubleduck.Assets.loadAndCall("images/loading_fill.png",$bind(this,this.loadBarStroke));
 	}
+	,exitFocus: function() {
+		var hidden = document.mozHidden;
+		if(hidden) co.doubleduck.SoundManager.mute(); else if(!co.doubleduck.SoundManager.getPersistedMute()) co.doubleduck.SoundManager.unmute();
+	}
+	,_evme: null
 	,_loadingStroke: null
 	,_loadingBar: null
 	,_tapToPlay: null
@@ -1785,21 +1832,28 @@ co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 	this.addChild(this._highscore);
 	this._playButton = new co.doubleduck.Button(co.doubleduck.Assets.getImage("images/menu/btn_play.png"));
 	this._playButton.scaleX = this._playButton.scaleY = co.doubleduck.Game.getScale();
-	this._playButton.regX = this._playButton.image.width;
+	this._playButton.regX = this._playButton.image.width / 2;
 	this._playButton.x = co.doubleduck.Game.getViewport().width / 2;
 	this._playButton.y = co.doubleduck.Game.getViewport().height * 0.8;
 	this._playButton.onClick = $bind(this,this.handlePlaySession);
 	this.addChild(this._playButton);
 	this._helpBtn = new co.doubleduck.Button(co.doubleduck.Assets.getImage("images/menu/help_btn.png"));
 	this._helpBtn.scaleX = this._helpBtn.scaleY = co.doubleduck.Game.getScale();
-	this._helpBtn.x = co.doubleduck.Game.getViewport().width / 2;
+	this._helpBtn.regX = this._helpBtn.image.width;
+	this._helpBtn.x = this._playButton.x - (this._playButton.image.width / 2 + 5) * co.doubleduck.Game.getScale();
 	this._helpBtn.y = this._playButton.y;
 	this._helpScreenShown = false;
 	this.addChild(this._helpBtn);
 	this._helpBtn.onClick = $bind(this,this.showHelp);
-	var totalWidth = (this._playButton.image.width + this._helpBtn.image.width + 20) * co.doubleduck.Game.getScale();
-	this._playButton.x += totalWidth / 2;
-	this._helpBtn.x -= totalWidth / 2;
+	if(co.doubleduck.SoundManager.available) {
+		this._muteButton = new co.doubleduck.Button(co.doubleduck.Assets.getImage("images/menu/audio_btn.png"),true,co.doubleduck.Button.CLICK_TYPE_TOGGLE);
+		this._muteButton.y = this._playButton.y + this._muteButton.image.height / 2 * co.doubleduck.Game.getScale();
+		this._muteButton.x = this._playButton.x + this._playButton.image.width / 2 * co.doubleduck.Game.getScale() + (this._muteButton.image.height / 2 + 3) * co.doubleduck.Game.getScale();
+		this._muteButton.scaleX = this._muteButton.scaleY = co.doubleduck.Game.getScale();
+		this._muteButton.setToggle(!co.doubleduck.SoundManager.isMuted());
+		this._muteButton.onToggle = co.doubleduck.SoundManager.toggleMute;
+		this.addChild(this._muteButton);
+	}
 	this._helpScreen = co.doubleduck.Assets.getImage("images/menu/help_scrn.png");
 	this._helpScreen.scaleX = this._helpScreen.scaleY = co.doubleduck.Game.getScale();
 	this._helpScreen.regX = this._helpScreen.image.width / 2;
@@ -1819,6 +1873,7 @@ co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 	if(co.doubleduck.Persistence.getTotalKnocks() == 0) this.showHelp(false);
 	co.doubleduck.Game.hammer.onswipe = $bind(this,this.handleSwipe);
 	this.toggleHighscore(true);
+	this._bgMusic = co.doubleduck.SoundManager.playMusic("sounds/music.ogg");
 };
 co.doubleduck.Menu.__name__ = ["co","doubleduck","Menu"];
 co.doubleduck.Menu.__super__ = createjs.Container;
@@ -1862,6 +1917,7 @@ co.doubleduck.Menu.prototype = $extend(createjs.Container.prototype,{
 		if(this._chosenVillageId < this.VILLAGES_COUNT - 1) this.targetVillage(this._chosenVillageId + 1);
 	}
 	,destroy: function() {
+		this._bgMusic.stop();
 		this.onStart = null;
 		if(this._isSweeping) createjs.Ticker.removeListener(this);
 	}
@@ -1990,8 +2046,16 @@ co.doubleduck.Menu.prototype = $extend(createjs.Container.prototype,{
 		this._helpScreen.visible = true;
 	}
 	,handleSwipe: function(event) {
-		if(event.direction == "left") this.handleNextVillage(); else if(event.direction == "right") this.handlePrevVillage();
+		if(event.direction == "left") {
+			this.handleNextVillage();
+			co.doubleduck.SoundManager.playEffect("sounds/swipe.ogg");
+		} else if(event.direction == "right") {
+			this.handlePrevVillage();
+			co.doubleduck.SoundManager.playEffect("sounds/swipe.ogg");
+		}
 	}
+	,_muteButton: null
+	,_bgMusic: null
 	,_closeHelpBtn: null
 	,_helpScreen: null
 	,_helpBtn: null
@@ -2020,6 +2084,79 @@ co.doubleduck.Menu.prototype = $extend(createjs.Container.prototype,{
 	,onStart: null
 	,__class__: co.doubleduck.Menu
 });
+co.doubleduck.Persistence = $hxClasses["co.doubleduck.Persistence"] = function() {
+};
+co.doubleduck.Persistence.__name__ = ["co","doubleduck","Persistence"];
+co.doubleduck.Persistence.localStorageSupported = function() {
+	var result = null;
+	try {
+		localStorage.setItem("test","test");
+		localStorage.removeItem("test");
+		result = true;
+	} catch( e ) {
+		result = false;
+	}
+	return result;
+}
+co.doubleduck.Persistence.getValue = function(key) {
+	if(!co.doubleduck.Persistence.available) return "0";
+	var val = localStorage[co.doubleduck.Persistence.GAME_PREFIX + key];
+	return val;
+}
+co.doubleduck.Persistence.setValue = function(key,value) {
+	if(!co.doubleduck.Persistence.available) return;
+	localStorage[co.doubleduck.Persistence.GAME_PREFIX + key] = value;
+}
+co.doubleduck.Persistence.clearAll = function() {
+	localStorage.clear();
+}
+co.doubleduck.Persistence.getTotalKnocks = function() {
+	return Std.parseInt(co.doubleduck.Persistence.getValue("totalKnocks"));
+}
+co.doubleduck.Persistence.setTotalKnocks = function(totalKnocks) {
+	co.doubleduck.Persistence.setValue("totalKnocks","" + totalKnocks);
+}
+co.doubleduck.Persistence.getVillageHighscore = function(villageId) {
+	return Std.parseInt(co.doubleduck.Persistence.getValue("vill" + villageId + "_highscore"));
+}
+co.doubleduck.Persistence.setVillageHighscore = function(villageId,highscore) {
+	co.doubleduck.Persistence.setValue("vill" + villageId + "_highscore","" + highscore);
+}
+co.doubleduck.Persistence.initGameData = function() {
+	if(!co.doubleduck.Persistence.available) return;
+	co.doubleduck.Persistence.initVar("totalKnocks");
+	var villageDB = new VillageDB();
+	var allVillages = villageDB.getAllVillages();
+	var _g1 = 0, _g = allVillages.length;
+	while(_g1 < _g) {
+		var currLevel = _g1++;
+		var villageId = allVillages[currLevel].id;
+		co.doubleduck.Persistence.initVar("vill" + villageId + "_highscore");
+	}
+}
+co.doubleduck.Persistence.printGameData = function() {
+	if(!co.doubleduck.Persistence.available) return;
+	var villageDB = new VillageDB();
+	var allVillages = villageDB.getAllVillages();
+	var _g1 = 0, _g = allVillages.length;
+	while(_g1 < _g) {
+		var currLevel = _g1++;
+		var villageId = allVillages[currLevel].id;
+		null;
+	}
+}
+co.doubleduck.Persistence.initVar = function(initedVar) {
+	var value = co.doubleduck.Persistence.getValue(initedVar);
+	if(value == null) try {
+		co.doubleduck.Persistence.setValue(initedVar,"0");
+	} catch( e ) {
+		co.doubleduck.Persistence.available = false;
+		null;
+	}
+}
+co.doubleduck.Persistence.prototype = {
+	__class__: co.doubleduck.Persistence
+}
 co.doubleduck.Player = $hxClasses["co.doubleduck.Player"] = function(x,y,spriteSheetLoc) {
 	if(y == null) y = 0;
 	if(x == null) x = 0;
@@ -2037,25 +2174,11 @@ co.doubleduck.Player = $hxClasses["co.doubleduck.Player"] = function(x,y,spriteS
 	this.x = x;
 	this.y = y;
 	this.gotoAndPlay("idle");
-	this._shield = co.doubleduck.Assets.getImage("images/hero/shield.png");
-	this._shield.scaleX = this._shield.scaleY = co.doubleduck.Game.getScale();
-	this._shield.regX = this._shield.image.width / 2;
-	this._shield.regY = this._shield.image.height;
-	this._shield.alpha = 1;
-	this._shield.visible = true;
 };
 co.doubleduck.Player.__name__ = ["co","doubleduck","Player"];
 co.doubleduck.Player.__super__ = createjs.BitmapAnimation;
 co.doubleduck.Player.prototype = $extend(createjs.BitmapAnimation.prototype,{
-	removeShield: function() {
-		if(this.parent != null && this.parent.getStage() != null) this.parent.getStage().removeChild(this._shield);
-		this._shield.visible = false;
-	}
-	,unshowShield: function() {
-	}
-	,showShield: function() {
-	}
-	,getHeight: function() {
+	getHeight: function() {
 		return this.spriteSheet._frameHeight;
 	}
 	,getWidth: function() {
@@ -2078,9 +2201,19 @@ co.doubleduck.Player.prototype = $extend(createjs.BitmapAnimation.prototype,{
 		this._lastAttack = createjs.Ticker.getTime(false);
 		switch(hitType) {
 		case co.doubleduck.Player.ATTACK_LEFT:
+			var soundToPlay = "";
+			if(Math.random() > 0.5) {
+				if(Math.random() > 0.90) soundToPlay = "sounds/Hit_3.ogg"; else soundToPlay = "sounds/Hit_3short.ogg";
+			} else if(Math.random() > 0.90) soundToPlay = "sounds/Hit_4.ogg"; else soundToPlay = "sounds/Hit_4short.ogg";
+			co.doubleduck.SoundManager.playEffect(soundToPlay);
 			this.gotoAndPlay("attackLeft");
 			break;
 		case co.doubleduck.Player.ATTACK_RIGHT:
+			var soundToPlay = "";
+			if(Math.random() > 0.5) {
+				if(Math.random() > 0.90) soundToPlay = "sounds/Hit_1.ogg"; else soundToPlay = "sounds/Hit_1short.ogg";
+			} else if(Math.random() > 0.90) soundToPlay = "sounds/Hit_2.ogg"; else soundToPlay = "sounds/Hit_2short.ogg";
+			co.doubleduck.SoundManager.playEffect(soundToPlay);
 			this.gotoAndPlay("attackRight");
 			break;
 		case co.doubleduck.Player.ATTACK_BOTH:
@@ -2090,8 +2223,8 @@ co.doubleduck.Player.prototype = $extend(createjs.BitmapAnimation.prototype,{
 		}
 	}
 	,getHit: function() {
+		co.doubleduck.SoundManager.playEffect("sounds/Hero_Hurt.ogg");
 	}
-	,_shield: null
 	,_lastAttack: null
 	,__class__: co.doubleduck.Player
 });
@@ -2155,7 +2288,6 @@ co.doubleduck.Session = $hxClasses["co.doubleduck.Session"] = function(villageId
 	co.doubleduck.Enemy.setSpeed(co.doubleduck.Session.MIN_ENEMY_SPEED * 1.5);
 	this.midracha._speed = co.doubleduck.Session.MIN_ENEMY_SPEED * 1.5;
 	this._player.run();
-	co.doubleduck.Game.getStage().onMouseUp = $bind(this,this.playerClick);
 	this._enemiesFacingTermination = 0;
 	var _g1 = 0, _g = this._villageData.enemies.length;
 	while(_g1 < _g) {
@@ -2181,6 +2313,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		this._hud.onMenuClick = func;
 	}
 	,destroy: function() {
+		this._sessionEnded = true;
 		createjs.Ticker.removeListener(this);
 		this.onRestart = null;
 		this.onBackToMenu = null;
@@ -2217,6 +2350,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 	}
 	,startMegaKnock: function() {
 		if(this._megaknockEnabled) return;
+		co.doubleduck.SoundManager.playEffect("sounds/fury_blast.ogg");
 		this._megaknockEnabled = true;
 		this._megaknockBack.alpha = 0;
 		this._megaknockBack.visible = true;
@@ -2246,6 +2380,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 	}
 	,startFocus: function() {
 		if(this._focusEnabled) return;
+		co.doubleduck.SoundManager.playEffect("sounds/in_the_zen.ogg");
 		this._focusGrad.visible = true;
 		this._focusEnabled = true;
 		createjs.Tween.get(this._focusGrad).to({ alpha : 1},500);
@@ -2269,6 +2404,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		if(this._shieldEnabled) return;
 		this._shield.visible = true;
 		this._shieldEnabled = true;
+		co.doubleduck.SoundManager.playEffect("sounds/mega_shield.ogg");
 		createjs.Tween.get(this._shield).to({ alpha : 1},500);
 	}
 	,startPowerup: function(name) {
@@ -2325,6 +2461,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		}
 	}
 	,handleTimeUp: function() {
+		co.doubleduck.SoundManager.playEffect("sounds/level_end2.ogg");
 		this._sessionEnded = true;
 		this.midracha.destroy();
 		this._hud.setRemainingSecs(0);
@@ -2353,6 +2490,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 					this._hud.showDecreaseSecond();
 				}
 				this._enemyAttacking.attack();
+				this._player.getHit();
 			}
 			co.doubleduck.Utils.waitAndCall(this,650,$bind(this,this.enemyAttack));
 		}
@@ -2473,6 +2611,17 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		bg.x = co.doubleduck.Game.getViewport().width / 2;
 		bg.y = co.doubleduck.Game.getViewport().height / 2;
 		this.addChildAt(bg,1);
+		var clickShp = new createjs.Shape();
+		clickShp.graphics.beginFill("#FF0000");
+		clickShp.graphics.drawRect(0,0,bg.image.width * co.doubleduck.Game.getScale(),bg.image.height * co.doubleduck.Game.getScale());
+		clickShp.graphics.endFill();
+		clickShp.regX = bg.image.width * co.doubleduck.Game.getScale() / 2;
+		clickShp.regY = bg.image.height * co.doubleduck.Game.getScale() / 2;
+		clickShp.x = bg.x;
+		clickShp.y = bg.y;
+		this.addChild(clickShp);
+		clickShp.alpha = 0.01;
+		clickShp.onClick = $bind(this,this.playerClick);
 	}
 	,playerClick: function() {
 		if(this._isPaused) return;
@@ -2504,8 +2653,10 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		this.calcSecs();
 	}
 	,digitTween: function() {
+		if(this._sessionEnded) return;
 		var num = this._counterFrom;
 		if(this.currDigit != null) this.removeChild(this.currDigit);
+		if(num == 3) co.doubleduck.SoundManager.playEffect("sounds/three.ogg"); else if(num == 2) co.doubleduck.SoundManager.playEffect("sounds/two.ogg"); else if(num == 1) co.doubleduck.SoundManager.playEffect("sounds/one.ogg");
 		this.currDigit = co.doubleduck.FontHelper.getNumber(num,co.doubleduck.Game.getScale(),true);
 		this.currDigit.regX = this.currDigit.image.width / 2;
 		this.currDigit.regY = this.currDigit.image.height / 2;
@@ -2607,6 +2758,9 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 		this._menuBtn.mouseEnabled = true;
 		this._restartBtn.mouseEnabled = true;
 	}
+	,secondStamp: function() {
+		co.doubleduck.SoundManager.playEffect("sounds/stamp3.ogg");
+	}
 	,checkUpdateVillage: function() {
 		var unlockedArea = false;
 		var villagedb = new VillageDB();
@@ -2629,6 +2783,7 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 			this._unlockVillageBar.y = co.doubleduck.Game.MAX_HEIGHT * 0.48 * 0.5;
 			this._unlockVillageBar.rotation = 20;
 			this._unlockVillageBar.alpha = 0;
+			co.doubleduck.Utils.waitAndCall(this,300,$bind(this,this.secondStamp));
 			createjs.Tween.get(this._unlockVillageBar).wait(200).to({ alpha : 1, x : co.doubleduck.Game.MAX_WIDTH * 0.75, y : co.doubleduck.Game.MAX_HEIGHT * 0.36},250,createjs.Ease.sineIn);
 			this._screenContainer.addChildAt(this._unlockVillageBar,2);
 		}
@@ -2658,6 +2813,7 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 		this._highscoreBar.rotation = -15;
 		this._highscoreBar.alpha = 0;
 		this._screenContainer.addChild(this._highscoreBar);
+		co.doubleduck.SoundManager.playEffect("sounds/stamp2.ogg");
 		createjs.Tween.get(this._highscoreBar).wait(200).to({ alpha : 1, x : co.doubleduck.Game.MAX_WIDTH * 0.25, y : co.doubleduck.Game.MAX_HEIGHT * 0.38},250,createjs.Ease.sineIn).call($bind(this,this.checkUpdateVillage));
 	}
 	,updateScore: function() {
@@ -2678,6 +2834,7 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 		createjs.Tween.get(this._restartBtn).to({ alpha : 1},500);
 	}
 	,doScore: function() {
+		co.doubleduck.SoundManager.playEffect("sounds/score.ogg");
 		this._scoreStartTime = createjs.Ticker.getTime(false);
 		this.updateScore();
 		co.doubleduck.Utils.waitAndCall(this,500,$bind(this,this.showButtons));
@@ -2739,6 +2896,79 @@ co.doubleduck.Sidewalk.prototype = $extend(createjs.Container.prototype,{
 	,_parts: null
 	,__class__: co.doubleduck.Sidewalk
 });
+co.doubleduck.SoundManager = $hxClasses["co.doubleduck.SoundManager"] = function() {
+};
+co.doubleduck.SoundManager.__name__ = ["co","doubleduck","SoundManager"];
+co.doubleduck.SoundManager.getPersistedMute = function() {
+	var mute = co.doubleduck.Persistence.getValue("mute");
+	if(mute == "0") {
+		mute = "false";
+		co.doubleduck.SoundManager.setPersistedMute(false);
+	}
+	return mute == "true";
+}
+co.doubleduck.SoundManager.setPersistedMute = function(mute) {
+	var val = "true";
+	if(!mute) val = "false";
+	co.doubleduck.Persistence.setValue("mute",val);
+}
+co.doubleduck.SoundManager.isSoundAvailable = function() {
+	var isFirefox = /Firefox/.test(navigator.userAgent);
+	return isFirefox;
+}
+co.doubleduck.SoundManager.mute = function() {
+	if(!co.doubleduck.SoundManager.available) return;
+	co.doubleduck.SoundManager._muted = true;
+	var _g1 = 0, _g = Reflect.fields(co.doubleduck.SoundManager._cache).length;
+	while(_g1 < _g) {
+		var currSound = _g1++;
+		var mySound = Reflect.getProperty(co.doubleduck.SoundManager._cache,Reflect.fields(co.doubleduck.SoundManager._cache)[currSound]);
+		if(mySound != null) mySound.setVolume(0);
+	}
+}
+co.doubleduck.SoundManager.unmute = function() {
+	if(!co.doubleduck.SoundManager.available) return;
+	co.doubleduck.SoundManager._muted = false;
+	var _g1 = 0, _g = Reflect.fields(co.doubleduck.SoundManager._cache).length;
+	while(_g1 < _g) {
+		var currSound = _g1++;
+		var mySound = Reflect.getProperty(co.doubleduck.SoundManager._cache,Reflect.fields(co.doubleduck.SoundManager._cache)[currSound]);
+		if(mySound != null) mySound.setVolume(1);
+	}
+}
+co.doubleduck.SoundManager.toggleMute = function() {
+	if(co.doubleduck.SoundManager._muted) co.doubleduck.SoundManager.unmute(); else co.doubleduck.SoundManager.mute();
+	co.doubleduck.SoundManager.setPersistedMute(co.doubleduck.SoundManager._muted);
+}
+co.doubleduck.SoundManager.isMuted = function() {
+	return co.doubleduck.SoundManager._muted;
+}
+co.doubleduck.SoundManager.getAudioInstance = function(src) {
+	if(!co.doubleduck.SoundManager.available) return new co.doubleduck.audio.DummyAudioAPI();
+	var audio = Reflect.getProperty(co.doubleduck.SoundManager._cache,src);
+	if(audio == null) {
+		audio = new co.doubleduck.audio.AudioFX(src);
+		Reflect.setProperty(co.doubleduck.SoundManager._cache,src,audio);
+	}
+	return audio;
+}
+co.doubleduck.SoundManager.playEffect = function(src) {
+	var audio = co.doubleduck.SoundManager.getAudioInstance(src);
+	var volume = 1;
+	if(co.doubleduck.SoundManager._muted) volume = 0;
+	audio.playEffect(volume);
+	return audio;
+}
+co.doubleduck.SoundManager.playMusic = function(src) {
+	var audio = co.doubleduck.SoundManager.getAudioInstance(src);
+	var volume = 1;
+	if(co.doubleduck.SoundManager._muted) volume = 0;
+	audio.playMusic(volume,true);
+	return audio;
+}
+co.doubleduck.SoundManager.prototype = {
+	__class__: co.doubleduck.SoundManager
+}
 co.doubleduck.Utils = $hxClasses["co.doubleduck.Utils"] = function() {
 };
 co.doubleduck.Utils.__name__ = ["co","doubleduck","Utils"];
@@ -2760,6 +2990,152 @@ co.doubleduck.Utils.tintBitmap = function(src,redMultiplier,greenMultiplier,blue
 }
 co.doubleduck.Utils.prototype = {
 	__class__: co.doubleduck.Utils
+}
+if(!co.doubleduck.audio) co.doubleduck.audio = {}
+co.doubleduck.audio.AudioAPI = $hxClasses["co.doubleduck.audio.AudioAPI"] = function() { }
+co.doubleduck.audio.AudioAPI.__name__ = ["co","doubleduck","audio","AudioAPI"];
+co.doubleduck.audio.AudioAPI.prototype = {
+	setVolume: null
+	,pause: null
+	,stop: null
+	,playMusic: null
+	,playEffect: null
+	,init: null
+	,__class__: co.doubleduck.audio.AudioAPI
+}
+co.doubleduck.audio.AudioFX = $hxClasses["co.doubleduck.audio.AudioFX"] = function(src) {
+	this._jsAudio = null;
+	this._src = src;
+	this._loop = false;
+	this._volume = 1;
+};
+co.doubleduck.audio.AudioFX.__name__ = ["co","doubleduck","audio","AudioFX"];
+co.doubleduck.audio.AudioFX.__interfaces__ = [co.doubleduck.audio.AudioAPI];
+co.doubleduck.audio.AudioFX._currentlyPlaying = null;
+co.doubleduck.audio.AudioFX.prototype = {
+	setVolume: function(volume) {
+		this._volume = volume;
+		this._jsAudio.setVolume(volume);
+	}
+	,pause: function() {
+	}
+	,stop: function(fadeOut) {
+		if(fadeOut == null) fadeOut = 0;
+		this._jsAudio.stop();
+	}
+	,playMusic: function(volume,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = true;
+		if(volume == null) volume = 1;
+		if(this._jsAudio == null) this.load(loop);
+		this._jsAudio.play();
+		this.setVolume(volume);
+	}
+	,playEffect: function(volume,overrideOtherEffects,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = false;
+		if(overrideOtherEffects == null) overrideOtherEffects = true;
+		if(volume == null) volume = 1;
+		if(this._jsAudio == null) this.load(loop,2);
+		this._jsAudio.play();
+		this.setVolume(volume);
+	}
+	,load: function(isLoop,pool) {
+		if(pool == null) pool = 1;
+		var pathNoExtension = this._src.split(".")[0];
+		this._jsAudio = AudioFX(pathNoExtension, { formats: ['ogg'], loop: isLoop, pool: pool });
+	}
+	,init: function() {
+	}
+	,_volume: null
+	,_loop: null
+	,_jsAudio: null
+	,_src: null
+	,__class__: co.doubleduck.audio.AudioFX
+}
+co.doubleduck.audio.DummyAudioAPI = $hxClasses["co.doubleduck.audio.DummyAudioAPI"] = function() {
+};
+co.doubleduck.audio.DummyAudioAPI.__name__ = ["co","doubleduck","audio","DummyAudioAPI"];
+co.doubleduck.audio.DummyAudioAPI.__interfaces__ = [co.doubleduck.audio.AudioAPI];
+co.doubleduck.audio.DummyAudioAPI.prototype = {
+	setVolume: function(volume) {
+	}
+	,pause: function() {
+	}
+	,stop: function(fadeOut) {
+		if(fadeOut == null) fadeOut = 0;
+	}
+	,playMusic: function(volume,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = true;
+		if(volume == null) volume = 1;
+	}
+	,playEffect: function(volume,overrideOtherEffects,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = false;
+		if(overrideOtherEffects == null) overrideOtherEffects = true;
+		if(volume == null) volume = 1;
+	}
+	,init: function() {
+	}
+	,__class__: co.doubleduck.audio.DummyAudioAPI
+}
+co.doubleduck.audio.HTML5Audio = $hxClasses["co.doubleduck.audio.HTML5Audio"] = function(src) {
+	this._src = src;
+	this.load();
+	this._loop = false;
+	this._volume = 1;
+};
+co.doubleduck.audio.HTML5Audio.__name__ = ["co","doubleduck","audio","HTML5Audio"];
+co.doubleduck.audio.HTML5Audio.__interfaces__ = [co.doubleduck.audio.AudioAPI];
+co.doubleduck.audio.HTML5Audio._currentlyPlaying = null;
+co.doubleduck.audio.HTML5Audio.prototype = {
+	setVolume: function(volume) {
+		this._volume = volume;
+	}
+	,pause: function() {
+		this._jsAudio.pause();
+	}
+	,stop: function(fadeOut) {
+		if(fadeOut == null) fadeOut = 0;
+		this.pause();
+		this._jsAudio.currentTime = 0;
+	}
+	,playMusic: function(volume,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = false;
+		if(volume == null) volume = 1;
+		this._jsAudio.volume = volume;
+		this._jsAudio.initialTime = 0;
+		this._jsAudio.play();
+	}
+	,playEffect: function(volume,overrideOtherEffects,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = false;
+		if(overrideOtherEffects == null) overrideOtherEffects = true;
+		if(volume == null) volume = 1;
+		if(overrideOtherEffects && co.doubleduck.audio.HTML5Audio._currentlyPlaying != null) {
+			co.doubleduck.audio.HTML5Audio._currentlyPlaying.pause();
+			co.doubleduck.audio.HTML5Audio._currentlyPlaying.currentTime = 0;
+		}
+		this._jsAudio = new Audio();
+		this._jsAudio.src = this._src;
+		this._jsAudio.volume = volume;
+		this._jsAudio.play();
+		co.doubleduck.audio.HTML5Audio._currentlyPlaying = this._jsAudio;
+	}
+	,load: function() {
+		this._jsAudio = new Audio();
+		this._jsAudio.src = this._src;
+		this._jsAudio.initialTime = 0;
+	}
+	,init: function() {
+	}
+	,_volume: null
+	,_loop: null
+	,_jsAudio: null
+	,_src: null
+	,__class__: co.doubleduck.audio.HTML5Audio
 }
 var haxe = haxe || {}
 haxe.Serializer = $hxClasses["haxe.Serializer"] = function() {
@@ -3364,14 +3740,17 @@ if(typeof window != "undefined") {
 		return f(msg,[url + ":" + line]);
 	};
 }
-co.doubleduck.Persistence.GAME_PREFIX = "NK_";
-co.doubleduck.Persistence.available = co.doubleduck.Persistence.localStorageSupported();
 co.doubleduck.Assets.onLoadAll = null;
 co.doubleduck.Assets._loader = null;
 co.doubleduck.Assets._cacheData = { };
 co.doubleduck.Assets._loadCallbacks = { };
 co.doubleduck.Assets.loaded = 0;
-co.doubleduck.Assets._useLocalStorage = co.doubleduck.Persistence.available;
+co.doubleduck.Assets._useLocalStorage = false;
+co.doubleduck.Button.CLICK_TYPE_NONE = 0;
+co.doubleduck.Button.CLICK_TYPE_TINT = 1;
+co.doubleduck.Button.CLICK_TYPE_JUICY = 2;
+co.doubleduck.Button.CLICK_TYPE_SCALE = 3;
+co.doubleduck.Button.CLICK_TYPE_TOGGLE = 4;
 co.doubleduck.Enemy.DEATH_ZONE_PERCENTAGE = 0.77;
 co.doubleduck.Enemy.SPAWN_LINE = 0.14;
 co.doubleduck.Enemy.MAX_SCALE_LINE = 0.5;
@@ -3383,6 +3762,8 @@ co.doubleduck.Game.MAX_HEIGHT = 641;
 co.doubleduck.Game.MAX_WIDTH = 427;
 co.doubleduck.Game.HD = false;
 co.doubleduck.Game.DEBUG = false;
+co.doubleduck.Persistence.GAME_PREFIX = "NK_";
+co.doubleduck.Persistence.available = co.doubleduck.Persistence.localStorageSupported();
 co.doubleduck.Player.ATTACK_LEFT = "B";
 co.doubleduck.Player.ATTACK_RIGHT = "A";
 co.doubleduck.Player.ATTACK_BOTH = "C";
@@ -3393,6 +3774,11 @@ co.doubleduck.Session.ENEMY_SPEED_INCREMENT = 0.18;
 co.doubleduck.Session.ENEMY_SPEED_DECREMENT = 0.13;
 co.doubleduck.Session.COMBO_RENEW_SIZE = 0.33;
 co.doubleduck.Session.TIME_BEFORE_ICON_FOCUS = 3000;
+co.doubleduck.SoundManager._muted = co.doubleduck.SoundManager.getPersistedMute();
+co.doubleduck.SoundManager._cache = { };
+co.doubleduck.SoundManager.available = co.doubleduck.SoundManager.isSoundAvailable();
+co.doubleduck.audio.AudioFX._muted = false;
+co.doubleduck.audio.HTML5Audio._muted = false;
 haxe.Serializer.USE_CACHE = false;
 haxe.Serializer.USE_ENUM_INDEX = false;
 haxe.Serializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";

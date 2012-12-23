@@ -29,7 +29,7 @@
 				{"id": "ninja12", "killedByWeapon": "B", "bitmapLoc": "images/enemies/12.png", 
 					   "frameWidth": "156", "frameHeight": "160", "icon": "images/enemies/i12.png", "idleFrame": 1, "deathFrame": 0, "attackFrame":2, "knocksToUnlock": 7000},
 				{"id": "ninja13", "killedByWeapon": "A", "bitmapLoc": "images/enemies/13.png", 
-					   "frameWidth": "149", "frameHeight": "164", "icon": "images/enemies/i13.png", "idleFrame": 1, "deathFrame": 0, "attackFrame":2, "knocksToUnlock": 0},
+					   "frameWidth": "149", "frameHeight": "162", "icon": "images/enemies/i13.png", "idleFrame": 1, "deathFrame": 0, "attackFrame":2, "knocksToUnlock": 0},
 				{"id": "ninja14", "killedByWeapon": "A", "bitmapLoc": "images/enemies/14.png", 
 					   "frameWidth": "147", "frameHeight": "160", "icon": "images/enemies/i14.png", "idleFrame": 1, "deathFrame": 0, "attackFrame":2, "knocksToUnlock": 3000},
 				{"id": "ninja15", "killedByWeapon": "B", "bitmapLoc": "images/enemies/15.png", 
