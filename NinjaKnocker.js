@@ -4,6 +4,59 @@ function $extend(from, fields) {
 	for (var name in fields) proto[name] = fields[name];
 	return proto;
 }
+var EReg = $hxClasses["EReg"] = function(r,opt) {
+	opt = opt.split("u").join("");
+	this.r = new RegExp(r,opt);
+};
+EReg.__name__ = ["EReg"];
+EReg.prototype = {
+	customReplace: function(s,f) {
+		var buf = new StringBuf();
+		while(true) {
+			if(!this.match(s)) break;
+			buf.b += Std.string(this.matchedLeft());
+			buf.b += Std.string(f(this));
+			s = this.matchedRight();
+		}
+		buf.b += Std.string(s);
+		return buf.b;
+	}
+	,replace: function(s,by) {
+		return s.replace(this.r,by);
+	}
+	,split: function(s) {
+		var d = "#__delim__#";
+		return s.replace(this.r,d).split(d);
+	}
+	,matchedPos: function() {
+		if(this.r.m == null) throw "No string matched";
+		return { pos : this.r.m.index, len : this.r.m[0].length};
+	}
+	,matchedRight: function() {
+		if(this.r.m == null) throw "No string matched";
+		var sz = this.r.m.index + this.r.m[0].length;
+		return this.r.s.substr(sz,this.r.s.length - sz);
+	}
+	,matchedLeft: function() {
+		if(this.r.m == null) throw "No string matched";
+		return this.r.s.substr(0,this.r.m.index);
+	}
+	,matched: function(n) {
+		return this.r.m != null && n >= 0 && n < this.r.m.length?this.r.m[n]:(function($this) {
+			var $r;
+			throw "EReg::matched";
+			return $r;
+		}(this));
+	}
+	,match: function(s) {
+		if(this.r.global) this.r.lastIndex = 0;
+		this.r.m = this.r.exec(s);
+		this.r.s = s;
+		return this.r.m != null;
+	}
+	,r: null
+	,__class__: EReg
+}
 var Hash = $hxClasses["Hash"] = function() {
 	this.h = { };
 };
@@ -716,35 +769,33 @@ co.doubleduck.Assets.loadAll = function() {
 		manifest[manifest.length] = enemy.icon;
 	}
 	var sounds = new Array();
-	sounds[sounds.length] = "sounds/Hit_1.ogg";
-	sounds[sounds.length] = "sounds/Hit_2.ogg";
-	sounds[sounds.length] = "sounds/Hit_3.ogg";
-	sounds[sounds.length] = "sounds/Hit_4.ogg";
-	sounds[sounds.length] = "sounds/Hit_1short.ogg";
-	sounds[sounds.length] = "sounds/Hit_2short.ogg";
-	sounds[sounds.length] = "sounds/Hit_3short.ogg";
-	sounds[sounds.length] = "sounds/Hit_4short.ogg";
-	sounds[sounds.length] = "sounds/level_end2.ogg";
-	sounds[sounds.length] = "sounds/score.ogg";
-	sounds[sounds.length] = "sounds/three.ogg";
-	sounds[sounds.length] = "sounds/two.ogg";
-	sounds[sounds.length] = "sounds/one.ogg";
-	sounds[sounds.length] = "sounds/mega_shield.ogg";
-	sounds[sounds.length] = "sounds/music.ogg";
-	sounds[sounds.length] = "sounds/Hero_Hurt.ogg";
-	sounds[sounds.length] = "sounds/stamp2.ogg";
-	sounds[sounds.length] = "sounds/stamp3.ogg";
-	sounds[sounds.length] = "sounds/fury_blast.ogg";
-	sounds[sounds.length] = "sounds/in_the_zen.ogg";
-	sounds[sounds.length] = "sounds/swipe.ogg";
-	sounds[sounds.length] = "sounds/click.ogg";
+	sounds[sounds.length] = "sounds/Hit_1";
+	sounds[sounds.length] = "sounds/Hit_2";
+	sounds[sounds.length] = "sounds/Hit_3";
+	sounds[sounds.length] = "sounds/Hit_4";
+	sounds[sounds.length] = "sounds/Hit_1short";
+	sounds[sounds.length] = "sounds/Hit_2short";
+	sounds[sounds.length] = "sounds/Hit_3short";
+	sounds[sounds.length] = "sounds/Hit_4short";
+	sounds[sounds.length] = "sounds/level_end2";
+	sounds[sounds.length] = "sounds/score";
+	sounds[sounds.length] = "sounds/three";
+	sounds[sounds.length] = "sounds/two";
+	sounds[sounds.length] = "sounds/one";
+	sounds[sounds.length] = "sounds/mega_shield";
+	sounds[sounds.length] = "sounds/music";
+	sounds[sounds.length] = "sounds/Hero_Hurt";
+	sounds[sounds.length] = "sounds/stamp2";
+	sounds[sounds.length] = "sounds/stamp3";
+	sounds[sounds.length] = "sounds/fury_blast";
+	sounds[sounds.length] = "sounds/in_the_zen";
+	sounds[sounds.length] = "sounds/swipe";
+	sounds[sounds.length] = "sounds/click";
 	if(co.doubleduck.SoundManager.available) {
 		var _g1 = 0, _g = sounds.length;
 		while(_g1 < _g) {
 			var mySound = _g1++;
-			var audio = new Audio();
-			audio.src = sounds[mySound];
-			audio.addEventListener("canplaythrough",co.doubleduck.Assets.audioLoaded,false);
+			co.doubleduck.SoundManager.initSound(sounds[mySound]);
 		}
 	}
 	manifest[manifest.length] = "images/villages/village1/bgstatic.png";
@@ -863,7 +914,7 @@ co.doubleduck.Assets.prototype = {
 	__class__: co.doubleduck.Assets
 }
 co.doubleduck.Button = $hxClasses["co.doubleduck.Button"] = function(bmp,pauseAffected,clickType,clickSound) {
-	if(clickSound == null) clickSound = "sounds/click.ogg";
+	if(clickSound == null) clickSound = "sounds/click";
 	if(clickType == null) clickType = 2;
 	if(pauseAffected == null) pauseAffected = true;
 	createjs.Container.call(this);
@@ -1333,6 +1384,25 @@ co.doubleduck.Game.prototype = {
 		this._splashScreen = null;
 	}
 	,showMenu: function() {
+		if(co.doubleduck.SoundManager.engineType == co.doubleduck.SoundType.AUDIO_NO_OVERLAP) {
+			var nonUserInitedSounds = new Array();
+			nonUserInitedSounds.push("sounds/level_end2");
+			nonUserInitedSounds.push("sounds/hero_hurt");
+			nonUserInitedSounds.push("sounds/Hit_1");
+			nonUserInitedSounds.push("sounds/Hit_1short");
+			nonUserInitedSounds.push("sounds/Hit_2");
+			nonUserInitedSounds.push("sounds/Hit_2short");
+			nonUserInitedSounds.push("sounds/Hit_3");
+			nonUserInitedSounds.push("sounds/Hit_3short");
+			nonUserInitedSounds.push("sounds/Hit_4");
+			nonUserInitedSounds.push("sounds/Hit_4short");
+			var _g1 = 0, _g = nonUserInitedSounds.length;
+			while(_g1 < _g) {
+				var currSound = _g1++;
+				var sfx = co.doubleduck.SoundManager.playEffect(nonUserInitedSounds[currSound],0);
+				sfx.stop();
+			}
+		}
 		this._splashScreen.onClick = null;
 		co.doubleduck.Game._stage.removeChild(this._tapToPlay);
 		this._tapToPlay = null;
@@ -1871,7 +1941,7 @@ co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 	if(co.doubleduck.Persistence.getTotalKnocks() == 0) this.showHelp(false);
 	co.doubleduck.Game.hammer.onswipe = $bind(this,this.handleSwipe);
 	this.toggleHighscore(true);
-	this._bgMusic = co.doubleduck.SoundManager.playMusic("sounds/music.ogg");
+	this._bgMusic = co.doubleduck.SoundManager.playMusic("sounds/music");
 };
 co.doubleduck.Menu.__name__ = ["co","doubleduck","Menu"];
 co.doubleduck.Menu.__super__ = createjs.Container;
@@ -2046,10 +2116,10 @@ co.doubleduck.Menu.prototype = $extend(createjs.Container.prototype,{
 	,handleSwipe: function(event) {
 		if(event.direction == "left") {
 			this.handleNextVillage();
-			co.doubleduck.SoundManager.playEffect("sounds/swipe.ogg");
+			co.doubleduck.SoundManager.playEffect("sounds/swipe");
 		} else if(event.direction == "right") {
 			this.handlePrevVillage();
-			co.doubleduck.SoundManager.playEffect("sounds/swipe.ogg");
+			co.doubleduck.SoundManager.playEffect("sounds/swipe");
 		}
 	}
 	,_muteButton: null
@@ -2201,16 +2271,16 @@ co.doubleduck.Player.prototype = $extend(createjs.BitmapAnimation.prototype,{
 		case co.doubleduck.Player.ATTACK_LEFT:
 			var soundToPlay = "";
 			if(Math.random() > 0.5) {
-				if(Math.random() > 0.90) soundToPlay = "sounds/Hit_3.ogg"; else soundToPlay = "sounds/Hit_3short.ogg";
-			} else if(Math.random() > 0.90) soundToPlay = "sounds/Hit_4.ogg"; else soundToPlay = "sounds/Hit_4short.ogg";
+				if(Math.random() > 0.90) soundToPlay = "sounds/Hit_3"; else soundToPlay = "sounds/Hit_3short";
+			} else if(Math.random() > 0.90) soundToPlay = "sounds/Hit_4"; else soundToPlay = "sounds/Hit_4short";
 			co.doubleduck.SoundManager.playEffect(soundToPlay);
 			this.gotoAndPlay("attackLeft");
 			break;
 		case co.doubleduck.Player.ATTACK_RIGHT:
 			var soundToPlay = "";
 			if(Math.random() > 0.5) {
-				if(Math.random() > 0.90) soundToPlay = "sounds/Hit_1.ogg"; else soundToPlay = "sounds/Hit_1short.ogg";
-			} else if(Math.random() > 0.90) soundToPlay = "sounds/Hit_2.ogg"; else soundToPlay = "sounds/Hit_2short.ogg";
+				if(Math.random() > 0.90) soundToPlay = "sounds/Hit_1"; else soundToPlay = "sounds/Hit_1short";
+			} else if(Math.random() > 0.90) soundToPlay = "sounds/Hit_2"; else soundToPlay = "sounds/Hit_2short";
 			co.doubleduck.SoundManager.playEffect(soundToPlay);
 			this.gotoAndPlay("attackRight");
 			break;
@@ -2221,7 +2291,7 @@ co.doubleduck.Player.prototype = $extend(createjs.BitmapAnimation.prototype,{
 		}
 	}
 	,getHit: function() {
-		co.doubleduck.SoundManager.playEffect("sounds/Hero_Hurt.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/Hero_Hurt");
 	}
 	,_lastAttack: null
 	,__class__: co.doubleduck.Player
@@ -2348,7 +2418,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 	}
 	,startMegaKnock: function() {
 		if(this._megaknockEnabled) return;
-		co.doubleduck.SoundManager.playEffect("sounds/fury_blast.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/fury_blast",1,true);
 		this._megaknockEnabled = true;
 		this._megaknockBack.alpha = 0;
 		this._megaknockBack.visible = true;
@@ -2378,7 +2448,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 	}
 	,startFocus: function() {
 		if(this._focusEnabled) return;
-		co.doubleduck.SoundManager.playEffect("sounds/in_the_zen.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/in_the_zen",1,true);
 		this._focusGrad.visible = true;
 		this._focusEnabled = true;
 		createjs.Tween.get(this._focusGrad).to({ alpha : 1},500);
@@ -2402,7 +2472,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		if(this._shieldEnabled) return;
 		this._shield.visible = true;
 		this._shieldEnabled = true;
-		co.doubleduck.SoundManager.playEffect("sounds/mega_shield.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/mega_shield",1,true);
 		createjs.Tween.get(this._shield).to({ alpha : 1},500);
 	}
 	,startPowerup: function(name) {
@@ -2459,7 +2529,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		}
 	}
 	,handleTimeUp: function() {
-		co.doubleduck.SoundManager.playEffect("sounds/level_end2.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/level_end2");
 		this._sessionEnded = true;
 		this.midracha.destroy();
 		this._hud.setRemainingSecs(0);
@@ -2654,7 +2724,7 @@ co.doubleduck.Session.prototype = $extend(createjs.Container.prototype,{
 		if(this._sessionEnded) return;
 		var num = this._counterFrom;
 		if(this.currDigit != null) this.removeChild(this.currDigit);
-		if(num == 3) co.doubleduck.SoundManager.playEffect("sounds/three.ogg"); else if(num == 2) co.doubleduck.SoundManager.playEffect("sounds/two.ogg"); else if(num == 1) co.doubleduck.SoundManager.playEffect("sounds/one.ogg");
+		if(num == 3) co.doubleduck.SoundManager.playEffect("sounds/three",1,true); else if(num == 2) co.doubleduck.SoundManager.playEffect("sounds/two",1,true); else if(num == 1) co.doubleduck.SoundManager.playEffect("sounds/one",1,true);
 		this.currDigit = co.doubleduck.FontHelper.getNumber(num,co.doubleduck.Game.getScale(),true);
 		this.currDigit.regX = this.currDigit.image.width / 2;
 		this.currDigit.regY = this.currDigit.image.height / 2;
@@ -2757,7 +2827,7 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 		this._restartBtn.mouseEnabled = true;
 	}
 	,secondStamp: function() {
-		co.doubleduck.SoundManager.playEffect("sounds/stamp3.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/stamp3",1,true);
 	}
 	,checkUpdateVillage: function() {
 		var unlockedArea = false;
@@ -2811,7 +2881,7 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 		this._highscoreBar.rotation = -15;
 		this._highscoreBar.alpha = 0;
 		this._screenContainer.addChild(this._highscoreBar);
-		co.doubleduck.SoundManager.playEffect("sounds/stamp2.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/stamp2",1,true);
 		createjs.Tween.get(this._highscoreBar).wait(200).to({ alpha : 1, x : co.doubleduck.Game.MAX_WIDTH * 0.25, y : co.doubleduck.Game.MAX_HEIGHT * 0.38},250,createjs.Ease.sineIn).call($bind(this,this.checkUpdateVillage));
 	}
 	,updateScore: function() {
@@ -2832,7 +2902,7 @@ co.doubleduck.SessionEnd.prototype = $extend(createjs.Container.prototype,{
 		createjs.Tween.get(this._restartBtn).to({ alpha : 1},500);
 	}
 	,doScore: function() {
-		co.doubleduck.SoundManager.playEffect("sounds/score.ogg");
+		co.doubleduck.SoundManager.playEffect("sounds/score",1,true);
 		this._scoreStartTime = createjs.Ticker.getTime(false);
 		this.updateScore();
 		co.doubleduck.Utils.waitAndCall(this,500,$bind(this,this.showButtons));
@@ -2894,9 +2964,106 @@ co.doubleduck.Sidewalk.prototype = $extend(createjs.Container.prototype,{
 	,_parts: null
 	,__class__: co.doubleduck.Sidewalk
 });
+co.doubleduck.SoundType = $hxClasses["co.doubleduck.SoundType"] = { __ename__ : ["co","doubleduck","SoundType"], __constructs__ : ["WEB_AUDIO","AUDIO_FX","AUDIO_NO_OVERLAP","NONE"] }
+co.doubleduck.SoundType.WEB_AUDIO = ["WEB_AUDIO",0];
+co.doubleduck.SoundType.WEB_AUDIO.toString = $estr;
+co.doubleduck.SoundType.WEB_AUDIO.__enum__ = co.doubleduck.SoundType;
+co.doubleduck.SoundType.AUDIO_FX = ["AUDIO_FX",1];
+co.doubleduck.SoundType.AUDIO_FX.toString = $estr;
+co.doubleduck.SoundType.AUDIO_FX.__enum__ = co.doubleduck.SoundType;
+co.doubleduck.SoundType.AUDIO_NO_OVERLAP = ["AUDIO_NO_OVERLAP",2];
+co.doubleduck.SoundType.AUDIO_NO_OVERLAP.toString = $estr;
+co.doubleduck.SoundType.AUDIO_NO_OVERLAP.__enum__ = co.doubleduck.SoundType;
+co.doubleduck.SoundType.NONE = ["NONE",3];
+co.doubleduck.SoundType.NONE.toString = $estr;
+co.doubleduck.SoundType.NONE.__enum__ = co.doubleduck.SoundType;
+if(!co.doubleduck.audio) co.doubleduck.audio = {}
+co.doubleduck.audio.AudioAPI = $hxClasses["co.doubleduck.audio.AudioAPI"] = function() { }
+co.doubleduck.audio.AudioAPI.__name__ = ["co","doubleduck","audio","AudioAPI"];
+co.doubleduck.audio.AudioAPI.prototype = {
+	setVolume: null
+	,pause: null
+	,stop: null
+	,playMusic: null
+	,playEffect: null
+	,init: null
+	,__class__: co.doubleduck.audio.AudioAPI
+}
+co.doubleduck.audio.WebAudioAPI = $hxClasses["co.doubleduck.audio.WebAudioAPI"] = function(src) {
+	this._src = src;
+	this.loadAudioFile(this._src);
+};
+co.doubleduck.audio.WebAudioAPI.__name__ = ["co","doubleduck","audio","WebAudioAPI"];
+co.doubleduck.audio.WebAudioAPI.__interfaces__ = [co.doubleduck.audio.AudioAPI];
+co.doubleduck.audio.WebAudioAPI.context = null;
+co.doubleduck.audio.WebAudioAPI.webAudioInit = function() {
+	co.doubleduck.audio.WebAudioAPI.context = new webkitAudioContext();
+}
+co.doubleduck.audio.WebAudioAPI.saveBuffer = function(buffer,name) {
+	co.doubleduck.audio.WebAudioAPI._buffers[name] = buffer;
+}
+co.doubleduck.audio.WebAudioAPI.decodeError = function() {
+	null;
+}
+co.doubleduck.audio.WebAudioAPI.prototype = {
+	setVolume: function(volume) {
+		if(this._gainNode != null) this._gainNode.gain.value = volume;
+	}
+	,pause: function() {
+	}
+	,stop: function(fadeOut) {
+		if(fadeOut == null) fadeOut = 0;
+		if(this._source != null) this._source.noteOff(0);
+	}
+	,playMusic: function(volume,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = true;
+		if(volume == null) volume = 1;
+		this.playBuffer(this._src,loop);
+		this.setVolume(volume);
+	}
+	,playEffect: function(volume,overrideOtherEffects,loop,fadeIn) {
+		if(fadeIn == null) fadeIn = 0;
+		if(loop == null) loop = false;
+		if(overrideOtherEffects == null) overrideOtherEffects = true;
+		if(volume == null) volume = 1;
+		this.playBuffer(this._src,loop);
+		this.setVolume(volume);
+	}
+	,playBuffer: function(name,loop) {
+		if(loop == null) loop = false;
+		if(this._gainNode == null) {
+			this._gainNode = co.doubleduck.audio.WebAudioAPI.context.createGainNode();
+			this._gainNode.connect(co.doubleduck.audio.WebAudioAPI.context.destination);
+		}
+		this._buffer = Reflect.getProperty(co.doubleduck.audio.WebAudioAPI._buffers,this._src);
+		if(this._buffer == null) return;
+		this._source = co.doubleduck.audio.WebAudioAPI.context.createBufferSource();
+		this._source.buffer = this._buffer;
+		this._source.loop = loop;
+		this._source.connect(this._gainNode);
+		this._source.noteOn(0);
+	}
+	,loadAudioFile: function(src) {
+		var request = new XMLHttpRequest();
+		request.open("get",src,true);
+		request.responseType = "arraybuffer";
+		request.onload = function() { co.doubleduck.audio.WebAudioAPI.context.decodeAudioData(request.response, function(decodedBuffer) { buffer = decodedBuffer; co.doubleduck.audio.WebAudioAPI.saveBuffer(buffer,src); }, co.doubleduck.audio.WebAudioAPI.decodeError) }
+		request.send();
+	}
+	,init: function() {
+	}
+	,_source: null
+	,_gainNode: null
+	,_buffer: null
+	,_src: null
+	,__class__: co.doubleduck.audio.WebAudioAPI
+}
 co.doubleduck.SoundManager = $hxClasses["co.doubleduck.SoundManager"] = function() {
 };
 co.doubleduck.SoundManager.__name__ = ["co","doubleduck","SoundManager"];
+co.doubleduck.SoundManager.engineType = null;
+co.doubleduck.SoundManager.EXTENSION = null;
 co.doubleduck.SoundManager.getPersistedMute = function() {
 	var mute = co.doubleduck.Persistence.getValue("mute");
 	if(mute == "0") {
@@ -2913,10 +3080,38 @@ co.doubleduck.SoundManager.setPersistedMute = function(mute) {
 co.doubleduck.SoundManager.isSoundAvailable = function() {
 	var isFirefox = /Firefox/.test(navigator.userAgent);
 	var isChrome = /Chrome/.test(navigator.userAgent);
-	var isMobile = /Android/.test(navigator.userAgent);
-	var isAndroid = /Mobile/.test(navigator.userAgent);
-	if(isFirefox) return true;
-	if(isChrome && (!isAndroid && !isMobile)) return true;
+	var isMobile = /Mobile/.test(navigator.userAgent);
+	var isAndroid = /Android/.test(navigator.userAgent);
+	var isAndroid4 = /Android 4/.test(navigator.userAgent);
+	var isSafari = /Safari/.test(navigator.userAgent);
+	var agent = navigator.userAgent;
+	var reg = new EReg("iPhone OS 6","");
+	var isIOS6 = reg.match(agent) && isSafari && isMobile;
+	var isIpad = /iPad/.test(navigator.userAgent);
+	isIpad = isIpad && /OS 6/.test(navigator.userAgent);
+	isIOS6 = isIOS6 || isIpad;
+	if(isFirefox) {
+		co.doubleduck.SoundManager.engineType = co.doubleduck.SoundType.AUDIO_FX;
+		co.doubleduck.SoundManager.EXTENSION = ".ogg";
+		return true;
+	}
+	if(isChrome && (!isAndroid && !isMobile)) {
+		co.doubleduck.SoundManager.engineType = co.doubleduck.SoundType.WEB_AUDIO;
+		co.doubleduck.audio.WebAudioAPI.webAudioInit();
+		co.doubleduck.SoundManager.EXTENSION = ".mp3";
+		return true;
+	}
+	if(isIOS6) {
+		co.doubleduck.SoundManager.engineType = co.doubleduck.SoundType.WEB_AUDIO;
+		co.doubleduck.audio.WebAudioAPI.webAudioInit();
+		co.doubleduck.SoundManager.EXTENSION = ".mp3";
+		return true;
+	} else if(isAndroid4 && !isChrome) {
+		co.doubleduck.SoundManager.engineType = co.doubleduck.SoundType.AUDIO_NO_OVERLAP;
+		co.doubleduck.SoundManager.EXTENSION = ".mp3";
+		return true;
+	}
+	co.doubleduck.SoundManager.engineType = co.doubleduck.SoundType.NONE;
 	return false;
 }
 co.doubleduck.SoundManager.mute = function() {
@@ -2948,15 +3143,30 @@ co.doubleduck.SoundManager.isMuted = function() {
 }
 co.doubleduck.SoundManager.getAudioInstance = function(src) {
 	if(!co.doubleduck.SoundManager.available) return new co.doubleduck.audio.DummyAudioAPI();
+	src += co.doubleduck.SoundManager.EXTENSION;
 	var audio = Reflect.getProperty(co.doubleduck.SoundManager._cache,src);
 	if(audio == null) {
-		audio = new co.doubleduck.audio.AudioFX(src);
+		switch( (co.doubleduck.SoundManager.engineType)[1] ) {
+		case 1:
+			audio = new co.doubleduck.audio.AudioFX(src);
+			break;
+		case 0:
+			audio = new co.doubleduck.audio.WebAudioAPI(src);
+			break;
+		case 2:
+			audio = new co.doubleduck.audio.NonOverlappingAudio(src);
+			break;
+		case 3:
+			return new co.doubleduck.audio.DummyAudioAPI();
+		}
 		Reflect.setProperty(co.doubleduck.SoundManager._cache,src,audio);
 	}
 	return audio;
 }
-co.doubleduck.SoundManager.playEffect = function(src,volume) {
+co.doubleduck.SoundManager.playEffect = function(src,volume,optional) {
+	if(optional == null) optional = false;
 	if(volume == null) volume = 1;
+	if(optional && co.doubleduck.SoundManager.engineType == co.doubleduck.SoundType.AUDIO_NO_OVERLAP) return new co.doubleduck.audio.DummyAudioAPI();
 	var audio = co.doubleduck.SoundManager.getAudioInstance(src);
 	var playVolume = volume;
 	if(co.doubleduck.SoundManager._muted) playVolume = 0;
@@ -2971,6 +3181,9 @@ co.doubleduck.SoundManager.playMusic = function(src,volume,loop) {
 	if(co.doubleduck.SoundManager._muted) playVolume = 0;
 	audio.playMusic(playVolume,loop);
 	return audio;
+}
+co.doubleduck.SoundManager.initSound = function(src) {
+	co.doubleduck.SoundManager.getAudioInstance(src);
 }
 co.doubleduck.SoundManager.prototype = {
 	__class__: co.doubleduck.SoundManager
@@ -2997,18 +3210,6 @@ co.doubleduck.Utils.tintBitmap = function(src,redMultiplier,greenMultiplier,blue
 co.doubleduck.Utils.prototype = {
 	__class__: co.doubleduck.Utils
 }
-if(!co.doubleduck.audio) co.doubleduck.audio = {}
-co.doubleduck.audio.AudioAPI = $hxClasses["co.doubleduck.audio.AudioAPI"] = function() { }
-co.doubleduck.audio.AudioAPI.__name__ = ["co","doubleduck","audio","AudioAPI"];
-co.doubleduck.audio.AudioAPI.prototype = {
-	setVolume: null
-	,pause: null
-	,stop: null
-	,playMusic: null
-	,playEffect: null
-	,init: null
-	,__class__: co.doubleduck.audio.AudioAPI
-}
 co.doubleduck.audio.AudioFX = $hxClasses["co.doubleduck.audio.AudioFX"] = function(src) {
 	this._jsAudio = null;
 	this._src = src;
@@ -3021,7 +3222,7 @@ co.doubleduck.audio.AudioFX._currentlyPlaying = null;
 co.doubleduck.audio.AudioFX.prototype = {
 	setVolume: function(volume) {
 		this._volume = volume;
-		this._jsAudio.setVolume(volume);
+		if(this._jsAudio != null) this._jsAudio.setVolume(volume);
 	}
 	,pause: function() {
 	}
@@ -3048,8 +3249,8 @@ co.doubleduck.audio.AudioFX.prototype = {
 	}
 	,load: function(isLoop,pool) {
 		if(pool == null) pool = 1;
-		var pathNoExtension = this._src.split(".")[0];
-		this._jsAudio = AudioFX(pathNoExtension, { formats: ['ogg'], loop: isLoop, pool: pool });
+		var pathNoExtension = this._src;
+		this._jsAudio = AudioFX(pathNoExtension, { loop: isLoop, pool: pool });
 	}
 	,init: function() {
 	}
@@ -3086,64 +3287,97 @@ co.doubleduck.audio.DummyAudioAPI.prototype = {
 	}
 	,__class__: co.doubleduck.audio.DummyAudioAPI
 }
-co.doubleduck.audio.HTML5Audio = $hxClasses["co.doubleduck.audio.HTML5Audio"] = function(src) {
+co.doubleduck.audio.NonOverlappingAudio = $hxClasses["co.doubleduck.audio.NonOverlappingAudio"] = function(src) {
 	this._src = src;
 	this.load();
-	this._loop = false;
-	this._volume = 1;
+	this._isMusic = false;
 };
-co.doubleduck.audio.HTML5Audio.__name__ = ["co","doubleduck","audio","HTML5Audio"];
-co.doubleduck.audio.HTML5Audio.__interfaces__ = [co.doubleduck.audio.AudioAPI];
-co.doubleduck.audio.HTML5Audio._currentlyPlaying = null;
-co.doubleduck.audio.HTML5Audio.prototype = {
-	setVolume: function(volume) {
-		this._volume = volume;
+co.doubleduck.audio.NonOverlappingAudio.__name__ = ["co","doubleduck","audio","NonOverlappingAudio"];
+co.doubleduck.audio.NonOverlappingAudio.__interfaces__ = [co.doubleduck.audio.AudioAPI];
+co.doubleduck.audio.NonOverlappingAudio._currentlyPlaying = null;
+co.doubleduck.audio.NonOverlappingAudio.prototype = {
+	getSrc: function() {
+		return this._src;
+	}
+	,audio: function() {
+		return this._audio;
+	}
+	,setVolume: function(volume) {
+		if(this._audio != null) this._audio.volume = volume;
 	}
 	,pause: function() {
-		this._jsAudio.pause();
+		if(this._audio != null) this._audio.pause();
 	}
 	,stop: function(fadeOut) {
 		if(fadeOut == null) fadeOut = 0;
-		this.pause();
-		this._jsAudio.currentTime = 0;
+		if(this._isMusic) co.doubleduck.audio.NonOverlappingAudio._musicPlaying = false;
+		if(this._audio != null) {
+			this._audio.removeEventListener("ended",$bind(this,this.handleEnded));
+			this._audio.currentTime = 0;
+			this._audio.pause();
+		}
 	}
 	,playMusic: function(volume,loop,fadeIn) {
 		if(fadeIn == null) fadeIn = 0;
 		if(loop == null) loop = false;
 		if(volume == null) volume = 1;
-		this._jsAudio.volume = volume;
-		this._jsAudio.initialTime = 0;
-		this._jsAudio.play();
+		if(co.doubleduck.audio.NonOverlappingAudio._currentlyPlaying != null) co.doubleduck.audio.NonOverlappingAudio._currentlyPlaying.stop();
+		this._isMusic = true;
+		co.doubleduck.audio.NonOverlappingAudio._musicPlaying = true;
+		this._audio.play();
+		this._audio.volume = volume;
+		this._audio.loop = loop;
+		if(!loop) this._audio.addEventListener("ended",$bind(this,this.stop));
+	}
+	,handleEnded: function() {
+		this._audio.removeEventListener("ended",$bind(this,this.handleEnded));
+		this._audio.currentTime = 0;
+	}
+	,handleTimeUpdate: function() {
+		if(this._audio.currentTime >= this._audio.duration - 0.3) this.stop();
 	}
 	,playEffect: function(volume,overrideOtherEffects,loop,fadeIn) {
 		if(fadeIn == null) fadeIn = 0;
 		if(loop == null) loop = false;
 		if(overrideOtherEffects == null) overrideOtherEffects = true;
 		if(volume == null) volume = 1;
-		if(overrideOtherEffects && co.doubleduck.audio.HTML5Audio._currentlyPlaying != null) {
-			co.doubleduck.audio.HTML5Audio._currentlyPlaying.pause();
-			co.doubleduck.audio.HTML5Audio._currentlyPlaying.currentTime = 0;
-		}
-		this._jsAudio = new Audio();
-		this._jsAudio.src = this._src;
-		this._jsAudio.volume = volume;
-		this._jsAudio.play();
-		co.doubleduck.audio.HTML5Audio._currentlyPlaying = this._jsAudio;
+		if(co.doubleduck.audio.NonOverlappingAudio._musicPlaying) return;
+		if(overrideOtherEffects && co.doubleduck.audio.NonOverlappingAudio._currentlyPlaying != null) co.doubleduck.audio.NonOverlappingAudio._currentlyPlaying.stop();
+		this._audio.play();
+		this._audio.volume = volume;
+		this._audio.loop = loop;
+		if(!loop) this._audio.addEventListener("ended",$bind(this,this.stop));
+		co.doubleduck.audio.NonOverlappingAudio._currentlyPlaying = this;
+	}
+	,handleError: function() {
+	}
+	,handleCanPlay: function() {
 	}
 	,load: function() {
-		this._jsAudio = new Audio();
-		this._jsAudio.src = this._src;
-		this._jsAudio.initialTime = 0;
+		this._audio = new Audio();
+		this._audio.src = this._src;
+		this._audio.initialTime = 0;
+		this._audio.addEventListener("canplaythrough",$bind(this,this.handleCanPlay));
+		this._audio.addEventListener("onerror",$bind(this,this.handleError));
 	}
 	,init: function() {
 	}
-	,_volume: null
-	,_loop: null
-	,_jsAudio: null
+	,_isMusic: null
+	,_audio: null
 	,_src: null
-	,__class__: co.doubleduck.audio.HTML5Audio
+	,__class__: co.doubleduck.audio.NonOverlappingAudio
 }
 var haxe = haxe || {}
+haxe.Log = $hxClasses["haxe.Log"] = function() { }
+haxe.Log.__name__ = ["haxe","Log"];
+haxe.Log.trace = function(v,infos) {
+	js.Boot.__trace(v,infos);
+}
+haxe.Log.clear = function() {
+	js.Boot.__clear_trace();
+}
+haxe.Public = $hxClasses["haxe.Public"] = function() { }
+haxe.Public.__name__ = ["haxe","Public"];
 haxe.Serializer = $hxClasses["haxe.Serializer"] = function() {
 	this.buf = new StringBuf();
 	this.cache = new Array();
@@ -3388,6 +3622,105 @@ haxe.Serializer.prototype = {
 	,buf: null
 	,__class__: haxe.Serializer
 }
+haxe.StackItem = $hxClasses["haxe.StackItem"] = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","Lambda"] }
+haxe.StackItem.CFunction = ["CFunction",0];
+haxe.StackItem.CFunction.toString = $estr;
+haxe.StackItem.CFunction.__enum__ = haxe.StackItem;
+haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
+haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
+haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
+haxe.StackItem.Lambda = function(v) { var $x = ["Lambda",4,v]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; }
+haxe.Stack = $hxClasses["haxe.Stack"] = function() { }
+haxe.Stack.__name__ = ["haxe","Stack"];
+haxe.Stack.callStack = function() {
+	var oldValue = Error.prepareStackTrace;
+	Error.prepareStackTrace = function(error,callsites) {
+		var stack = [];
+		var _g = 0;
+		while(_g < callsites.length) {
+			var site = callsites[_g];
+			++_g;
+			var method = null;
+			var fullName = site.getFunctionName();
+			if(fullName != null) {
+				var idx = fullName.lastIndexOf(".");
+				if(idx >= 0) {
+					var className = HxOverrides.substr(fullName,0,idx);
+					var methodName = HxOverrides.substr(fullName,idx + 1,null);
+					method = haxe.StackItem.Method(className,methodName);
+				}
+			}
+			stack.push(haxe.StackItem.FilePos(method,site.getFileName(),site.getLineNumber()));
+		}
+		return stack;
+	};
+	var a = haxe.Stack.makeStack(new Error().stack);
+	a.shift();
+	Error.prepareStackTrace = oldValue;
+	return a;
+}
+haxe.Stack.exceptionStack = function() {
+	return [];
+}
+haxe.Stack.toString = function(stack) {
+	var b = new StringBuf();
+	var _g = 0;
+	while(_g < stack.length) {
+		var s = stack[_g];
+		++_g;
+		b.b += Std.string("\nCalled from ");
+		haxe.Stack.itemToString(b,s);
+	}
+	return b.b;
+}
+haxe.Stack.itemToString = function(b,s) {
+	var $e = (s);
+	switch( $e[1] ) {
+	case 0:
+		b.b += Std.string("a C function");
+		break;
+	case 1:
+		var m = $e[2];
+		b.b += Std.string("module ");
+		b.b += Std.string(m);
+		break;
+	case 2:
+		var line = $e[4], file = $e[3], s1 = $e[2];
+		if(s1 != null) {
+			haxe.Stack.itemToString(b,s1);
+			b.b += Std.string(" (");
+		}
+		b.b += Std.string(file);
+		b.b += Std.string(" line ");
+		b.b += Std.string(line);
+		if(s1 != null) b.b += Std.string(")");
+		break;
+	case 3:
+		var meth = $e[3], cname = $e[2];
+		b.b += Std.string(cname);
+		b.b += Std.string(".");
+		b.b += Std.string(meth);
+		break;
+	case 4:
+		var n = $e[2];
+		b.b += Std.string("local function #");
+		b.b += Std.string(n);
+		break;
+	}
+}
+haxe.Stack.makeStack = function(s) {
+	if(typeof(s) == "string") {
+		var stack = s.split("\n");
+		var m = [];
+		var _g = 0;
+		while(_g < stack.length) {
+			var line = stack[_g];
+			++_g;
+			m.push(haxe.StackItem.Module(line));
+		}
+		return m;
+	} else return s;
+}
 if(!haxe.io) haxe.io = {}
 haxe.io.Bytes = $hxClasses["haxe.io.Bytes"] = function(length,b) {
 	this.length = length;
@@ -3550,6 +3883,200 @@ haxe.remoting.FlashJsConnection.flashCall = function(flashObj,name,path,params) 
 		s.serializeException(e);
 		return s.toString();
 	}
+}
+if(!haxe.unit) haxe.unit = {}
+haxe.unit.TestCase = $hxClasses["haxe.unit.TestCase"] = function() {
+};
+haxe.unit.TestCase.__name__ = ["haxe","unit","TestCase"];
+haxe.unit.TestCase.__interfaces__ = [haxe.Public];
+haxe.unit.TestCase.prototype = {
+	assertEquals: function(expected,actual,c) {
+		this.currentTest.done = true;
+		if(actual != expected) {
+			this.currentTest.success = false;
+			this.currentTest.error = "expected '" + Std.string(expected) + "' but was '" + Std.string(actual) + "'";
+			this.currentTest.posInfos = c;
+			throw this.currentTest;
+		}
+	}
+	,assertFalse: function(b,c) {
+		this.currentTest.done = true;
+		if(b == true) {
+			this.currentTest.success = false;
+			this.currentTest.error = "expected false but was true";
+			this.currentTest.posInfos = c;
+			throw this.currentTest;
+		}
+	}
+	,assertTrue: function(b,c) {
+		this.currentTest.done = true;
+		if(b == false) {
+			this.currentTest.success = false;
+			this.currentTest.error = "expected true but was false";
+			this.currentTest.posInfos = c;
+			throw this.currentTest;
+		}
+	}
+	,print: function(v) {
+		haxe.unit.TestRunner.print(v);
+	}
+	,tearDown: function() {
+	}
+	,setup: function() {
+	}
+	,currentTest: null
+	,__class__: haxe.unit.TestCase
+}
+haxe.unit.TestResult = $hxClasses["haxe.unit.TestResult"] = function() {
+	this.m_tests = new List();
+	this.success = true;
+};
+haxe.unit.TestResult.__name__ = ["haxe","unit","TestResult"];
+haxe.unit.TestResult.prototype = {
+	toString: function() {
+		var buf = new StringBuf();
+		var failures = 0;
+		var $it0 = this.m_tests.iterator();
+		while( $it0.hasNext() ) {
+			var test = $it0.next();
+			if(test.success == false) {
+				buf.b += Std.string("* ");
+				buf.b += Std.string(test.classname);
+				buf.b += Std.string("::");
+				buf.b += Std.string(test.method);
+				buf.b += Std.string("()");
+				buf.b += Std.string("\n");
+				buf.b += Std.string("ERR: ");
+				if(test.posInfos != null) {
+					buf.b += Std.string(test.posInfos.fileName);
+					buf.b += Std.string(":");
+					buf.b += Std.string(test.posInfos.lineNumber);
+					buf.b += Std.string("(");
+					buf.b += Std.string(test.posInfos.className);
+					buf.b += Std.string(".");
+					buf.b += Std.string(test.posInfos.methodName);
+					buf.b += Std.string(") - ");
+				}
+				buf.b += Std.string(test.error);
+				buf.b += Std.string("\n");
+				if(test.backtrace != null) {
+					buf.b += Std.string(test.backtrace);
+					buf.b += Std.string("\n");
+				}
+				buf.b += Std.string("\n");
+				failures++;
+			}
+		}
+		buf.b += Std.string("\n");
+		if(failures == 0) buf.b += Std.string("OK "); else buf.b += Std.string("FAILED ");
+		buf.b += Std.string(this.m_tests.length);
+		buf.b += Std.string(" tests, ");
+		buf.b += Std.string(failures);
+		buf.b += Std.string(" failed, ");
+		buf.b += Std.string(this.m_tests.length - failures);
+		buf.b += Std.string(" success");
+		buf.b += Std.string("\n");
+		return buf.b;
+	}
+	,add: function(t) {
+		this.m_tests.add(t);
+		if(!t.success) this.success = false;
+	}
+	,success: null
+	,m_tests: null
+	,__class__: haxe.unit.TestResult
+}
+haxe.unit.TestRunner = $hxClasses["haxe.unit.TestRunner"] = function() {
+	this.result = new haxe.unit.TestResult();
+	this.cases = new List();
+};
+haxe.unit.TestRunner.__name__ = ["haxe","unit","TestRunner"];
+haxe.unit.TestRunner.print = function(v) {
+	var msg = StringTools.htmlEscape(js.Boot.__string_rec(v,"")).split("\n").join("<br/>");
+	var d = document.getElementById("haxe:trace");
+	if(d == null) alert("haxe:trace element not found"); else d.innerHTML += msg;
+}
+haxe.unit.TestRunner.customTrace = function(v,p) {
+	haxe.unit.TestRunner.print(p.fileName + ":" + p.lineNumber + ": " + Std.string(v) + "\n");
+}
+haxe.unit.TestRunner.prototype = {
+	runCase: function(t) {
+		var old = haxe.Log.trace;
+		haxe.Log.trace = haxe.unit.TestRunner.customTrace;
+		var cl = Type.getClass(t);
+		var fields = Type.getInstanceFields(cl);
+		haxe.unit.TestRunner.print("Class: " + Type.getClassName(cl) + " ");
+		var _g = 0;
+		while(_g < fields.length) {
+			var f = fields[_g];
+			++_g;
+			var fname = f;
+			var field = Reflect.field(t,f);
+			if(StringTools.startsWith(fname,"test") && Reflect.isFunction(field)) {
+				t.currentTest = new haxe.unit.TestStatus();
+				t.currentTest.classname = Type.getClassName(cl);
+				t.currentTest.method = fname;
+				t.setup();
+				try {
+					field.apply(t,new Array());
+					if(t.currentTest.done) {
+						t.currentTest.success = true;
+						haxe.unit.TestRunner.print(".");
+					} else {
+						t.currentTest.success = false;
+						t.currentTest.error = "(warning) no assert";
+						haxe.unit.TestRunner.print("W");
+					}
+				} catch( $e0 ) {
+					if( js.Boot.__instanceof($e0,haxe.unit.TestStatus) ) {
+						var e = $e0;
+						haxe.unit.TestRunner.print("F");
+						t.currentTest.backtrace = haxe.Stack.toString(haxe.Stack.exceptionStack());
+					} else {
+					var e = $e0;
+					haxe.unit.TestRunner.print("E");
+					if(e.message != null) t.currentTest.error = "exception thrown : " + Std.string(e) + " [" + Std.string(e.message) + "]"; else t.currentTest.error = "exception thrown : " + Std.string(e);
+					t.currentTest.backtrace = haxe.Stack.toString(haxe.Stack.exceptionStack());
+					}
+				}
+				this.result.add(t.currentTest);
+				t.tearDown();
+			}
+		}
+		haxe.unit.TestRunner.print("\n");
+		haxe.Log.trace = old;
+	}
+	,run: function() {
+		this.result = new haxe.unit.TestResult();
+		var $it0 = this.cases.iterator();
+		while( $it0.hasNext() ) {
+			var c = $it0.next();
+			this.runCase(c);
+		}
+		haxe.unit.TestRunner.print(this.result.toString());
+		return this.result.success;
+	}
+	,add: function(c) {
+		this.cases.add(c);
+	}
+	,cases: null
+	,result: null
+	,__class__: haxe.unit.TestRunner
+}
+haxe.unit.TestStatus = $hxClasses["haxe.unit.TestStatus"] = function() {
+	this.done = false;
+	this.success = false;
+};
+haxe.unit.TestStatus.__name__ = ["haxe","unit","TestStatus"];
+haxe.unit.TestStatus.prototype = {
+	backtrace: null
+	,posInfos: null
+	,classname: null
+	,method: null
+	,error: null
+	,success: null
+	,done: null
+	,__class__: haxe.unit.TestStatus
 }
 var js = js || {}
 js.Boot = $hxClasses["js.Boot"] = function() { }
@@ -3780,11 +4307,12 @@ co.doubleduck.Session.ENEMY_SPEED_INCREMENT = 0.18;
 co.doubleduck.Session.ENEMY_SPEED_DECREMENT = 0.13;
 co.doubleduck.Session.COMBO_RENEW_SIZE = 0.33;
 co.doubleduck.Session.TIME_BEFORE_ICON_FOCUS = 3000;
+co.doubleduck.audio.WebAudioAPI._buffers = { };
 co.doubleduck.SoundManager._muted = co.doubleduck.SoundManager.getPersistedMute();
 co.doubleduck.SoundManager._cache = { };
 co.doubleduck.SoundManager.available = co.doubleduck.SoundManager.isSoundAvailable();
 co.doubleduck.audio.AudioFX._muted = false;
-co.doubleduck.audio.HTML5Audio._muted = false;
+co.doubleduck.audio.NonOverlappingAudio._musicPlaying = false;
 haxe.Serializer.USE_CACHE = false;
 haxe.Serializer.USE_ENUM_INDEX = false;
 haxe.Serializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";

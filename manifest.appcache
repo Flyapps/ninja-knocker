@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# V1.1
+# V1.2
 createjs/easeljs-0.5.0.min.js
 createjs/preloadjs-0.2.0.min.js
 createjs/soundjs-0.3.0.min.js
@@ -108,28 +108,49 @@ js/ColorFilter.js
 js/ddjsutils.js
 js/hammer.js
 js/viewporter-2.0.js
+sounds/click.mp3
 sounds/click.ogg
+sounds/fury_blast.mp3
 sounds/fury_blast.ogg
+sounds/Hero_Hurt.mp3
 sounds/Hero_Hurt.ogg
+sounds/Hit_1.mp3
 sounds/Hit_1.ogg
+sounds/Hit_1short.mp3
 sounds/Hit_1short.ogg
+sounds/Hit_2.mp3
 sounds/Hit_2.ogg
+sounds/Hit_2short.mp3
 sounds/Hit_2short.ogg
+sounds/Hit_3.mp3
 sounds/Hit_3.ogg
+sounds/Hit_3short.mp3
 sounds/Hit_3short.ogg
+sounds/Hit_4.mp3
 sounds/Hit_4.ogg
+sounds/Hit_4short.mp3
 sounds/Hit_4short.ogg
+sounds/in_the_zen.mp3
 sounds/in_the_zen.ogg
-sounds/level_end1.ogg
+sounds/level_end2.mp3
 sounds/level_end2.ogg
+sounds/mega_shield.mp3
 sounds/mega_shield.ogg
+sounds/music.mp3
 sounds/music.ogg
+sounds/one.mp3
 sounds/one.ogg
+sounds/score.mp3
 sounds/score.ogg
+sounds/stamp2.mp3
 sounds/stamp2.ogg
+sounds/stamp3.mp3
 sounds/stamp3.ogg
+sounds/swipe.mp3
 sounds/swipe.ogg
+sounds/three.mp3
 sounds/three.ogg
+sounds/two.mp3
 sounds/two.ogg
 # --- Add game files --- #
 index.html
