@@ -900,7 +900,7 @@ co.doubleduck.Assets.getRawImage = function(uri) {
 		var bmp = new createjs.Bitmap(uri);
 		co.doubleduck.Assets._cacheData[uri] = bmp.image;
 		cache = bmp.image;
-		null;
+		haxe.Log.trace("Requsted image that wasn't preloaded, consider preloading - \"" + uri + "\"",{ fileName : "Assets.hx", lineNumber : 230, className : "co.doubleduck.Assets", methodName : "getRawImage"});
 	}
 	return cache;
 }
@@ -1362,9 +1362,11 @@ co.doubleduck.Game.prototype = {
 		co.doubleduck.Game._stage.canvas.width = screenW;
 		co.doubleduck.Game._stage.canvas.height = screenH;
 		if(!viewporter.isLandscape()) {
-			if(isFirefox && isAndroid) {
-				var viewportHeight = js.Lib.window.screen.height - 110;
-				screenH = Math.ceil(viewportHeight * (screenW / js.Lib.window.screen.width));
+			if(isFirefox) {
+				screenH = Math.floor(co.doubleduck.Main.getFFHeight());
+				var ffEstimate = Math.ceil((js.Lib.window.screen.height - 110) * (screenW / js.Lib.window.screen.width));
+				if(!isAndroid) ffEstimate = Math.ceil((js.Lib.window.screen.height - 30) * (screenW / js.Lib.window.screen.width));
+				if(ffEstimate < screenH) screenH = Math.floor(ffEstimate);
 			}
 			if(!(viewporter.ACTIVE && screenH < screenW)) {
 				co.doubleduck.Game._viewport.width = screenW;
@@ -1802,13 +1804,22 @@ co.doubleduck.Main = $hxClasses["co.doubleduck.Main"] = function() { }
 co.doubleduck.Main.__name__ = ["co","doubleduck","Main"];
 co.doubleduck.Main._stage = null;
 co.doubleduck.Main._game = null;
+co.doubleduck.Main._ffHeight = null;
 co.doubleduck.Main.main = function() {
+	co.doubleduck.Main.testFFHeight();
 	createjs.Ticker.useRAF = true;
 	createjs.Ticker.setFPS(60);
 	co.doubleduck.Main._stage = new createjs.Stage(js.Lib.document.getElementById("stageCanvas"));
 	co.doubleduck.Main._game = new co.doubleduck.Game(co.doubleduck.Main._stage);
 	createjs.Ticker.addListener(co.doubleduck.Main._stage);
 	createjs.Touch.enable(co.doubleduck.Main._stage,true,false);
+}
+co.doubleduck.Main.testFFHeight = function() {
+	var isApplicable = /Firefox/.test(navigator.userAgent);
+	if(isApplicable && viewporter.ACTIVE) co.doubleduck.Main._ffHeight = js.Lib.window.innerHeight;
+}
+co.doubleduck.Main.getFFHeight = function() {
+	return co.doubleduck.Main._ffHeight;
 }
 co.doubleduck.Menu = $hxClasses["co.doubleduck.Menu"] = function() {
 	this._isSweeping = false;
@@ -2204,13 +2215,14 @@ co.doubleduck.Persistence.initGameData = function() {
 }
 co.doubleduck.Persistence.printGameData = function() {
 	if(!co.doubleduck.Persistence.available) return;
+	haxe.Log.trace("totalKnocks = " + co.doubleduck.Persistence.getValue("totalKnocks"),{ fileName : "Persistence.hx", lineNumber : 96, className : "co.doubleduck.Persistence", methodName : "printGameData"});
 	var villageDB = new VillageDB();
 	var allVillages = villageDB.getAllVillages();
 	var _g1 = 0, _g = allVillages.length;
 	while(_g1 < _g) {
 		var currLevel = _g1++;
 		var villageId = allVillages[currLevel].id;
-		null;
+		haxe.Log.trace("vill" + villageId + "_highscore = " + co.doubleduck.Persistence.getValue("vill" + villageId + "_highscore"),{ fileName : "Persistence.hx", lineNumber : 103, className : "co.doubleduck.Persistence", methodName : "printGameData"});
 	}
 }
 co.doubleduck.Persistence.initVar = function(initedVar) {
@@ -2219,7 +2231,7 @@ co.doubleduck.Persistence.initVar = function(initedVar) {
 		co.doubleduck.Persistence.setValue(initedVar,"0");
 	} catch( e ) {
 		co.doubleduck.Persistence.available = false;
-		null;
+		haxe.Log.trace("<<< failed to load critical data from localStorage",{ fileName : "Persistence.hx", lineNumber : 116, className : "co.doubleduck.Persistence", methodName : "initVar"});
 	}
 }
 co.doubleduck.Persistence.prototype = {
@@ -3003,7 +3015,7 @@ co.doubleduck.audio.WebAudioAPI.saveBuffer = function(buffer,name) {
 	co.doubleduck.audio.WebAudioAPI._buffers[name] = buffer;
 }
 co.doubleduck.audio.WebAudioAPI.decodeError = function() {
-	null;
+	haxe.Log.trace("decode error",{ fileName : "WebAudioAPI.hx", lineNumber : 64, className : "co.doubleduck.audio.WebAudioAPI", methodName : "decodeError"});
 }
 co.doubleduck.audio.WebAudioAPI.prototype = {
 	setVolume: function(volume) {
