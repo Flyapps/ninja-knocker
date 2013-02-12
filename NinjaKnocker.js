@@ -900,7 +900,7 @@ co.doubleduck.Assets.getRawImage = function(uri) {
 		var bmp = new createjs.Bitmap(uri);
 		co.doubleduck.Assets._cacheData[uri] = bmp.image;
 		cache = bmp.image;
-		haxe.Log.trace("Requsted image that wasn't preloaded, consider preloading - \"" + uri + "\"",{ fileName : "Assets.hx", lineNumber : 230, className : "co.doubleduck.Assets", methodName : "getRawImage"});
+		null;
 	}
 	return cache;
 }
@@ -2215,14 +2215,13 @@ co.doubleduck.Persistence.initGameData = function() {
 }
 co.doubleduck.Persistence.printGameData = function() {
 	if(!co.doubleduck.Persistence.available) return;
-	haxe.Log.trace("totalKnocks = " + co.doubleduck.Persistence.getValue("totalKnocks"),{ fileName : "Persistence.hx", lineNumber : 96, className : "co.doubleduck.Persistence", methodName : "printGameData"});
 	var villageDB = new VillageDB();
 	var allVillages = villageDB.getAllVillages();
 	var _g1 = 0, _g = allVillages.length;
 	while(_g1 < _g) {
 		var currLevel = _g1++;
 		var villageId = allVillages[currLevel].id;
-		haxe.Log.trace("vill" + villageId + "_highscore = " + co.doubleduck.Persistence.getValue("vill" + villageId + "_highscore"),{ fileName : "Persistence.hx", lineNumber : 103, className : "co.doubleduck.Persistence", methodName : "printGameData"});
+		null;
 	}
 }
 co.doubleduck.Persistence.initVar = function(initedVar) {
@@ -2231,7 +2230,7 @@ co.doubleduck.Persistence.initVar = function(initedVar) {
 		co.doubleduck.Persistence.setValue(initedVar,"0");
 	} catch( e ) {
 		co.doubleduck.Persistence.available = false;
-		haxe.Log.trace("<<< failed to load critical data from localStorage",{ fileName : "Persistence.hx", lineNumber : 116, className : "co.doubleduck.Persistence", methodName : "initVar"});
+		null;
 	}
 }
 co.doubleduck.Persistence.prototype = {
@@ -3015,7 +3014,7 @@ co.doubleduck.audio.WebAudioAPI.saveBuffer = function(buffer,name) {
 	co.doubleduck.audio.WebAudioAPI._buffers[name] = buffer;
 }
 co.doubleduck.audio.WebAudioAPI.decodeError = function() {
-	haxe.Log.trace("decode error",{ fileName : "WebAudioAPI.hx", lineNumber : 64, className : "co.doubleduck.audio.WebAudioAPI", methodName : "decodeError"});
+	null;
 }
 co.doubleduck.audio.WebAudioAPI.prototype = {
 	setVolume: function(volume) {
