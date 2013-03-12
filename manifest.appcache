@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# V1.23
+# V1.24
 
 NETWORK:
 *
@@ -12,6 +12,7 @@ createjs/tweenjs-0.3.0.min.js
 data/EnemyDB.js
 data/GameplayDB.js
 data/VillageDB.js
+images/favicon.png
 images/fb-share.png
 images/loading_fill.png
 images/loading_stroke.png
